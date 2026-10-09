@@ -102,10 +102,19 @@
 <!-- SIDEBAR -->
 <div id="overlay" onclick="closeSidebar()"></div>
 <aside id="sidebar">
-  <div class="p-4 border-b border-[var(--border)] flex items-center justify-between">
-    <span class="font-bold text-lg text-[var(--foreground)]">🌍 PolitiLearn</span>
-    <button onclick="closeSidebar()" class="text-[var(--muted-foreground)] hover:text-[var(--foreground)] text-xl">✕</button>
+  <!-- Brand header -->
+  <div style="background:linear-gradient(135deg,#064e3b,#16a34a);padding:1rem 1.25rem;display:flex;align-items:center;gap:10px;">
+    <span style="font-size:1.6rem;">🌍</span>
+    <div>
+      <p style="font-weight:800;font-size:1rem;color:white;line-height:1.2;">PolitiLearn</p>
+      <p style="font-size:0.7rem;color:#bbf7d0;font-weight:500;">Nigeria · Africa · World</p>
+    </div>
   </div>
+  <!-- Close button — full width, easy to tap -->
+  <button onclick="closeSidebar()" style="width:100%;background:#dc2626;color:white;border:none;padding:10px 16px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-weight:700;font-size:0.85rem;letter-spacing:0.04em;transition:background 0.2s;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
+    <svg style="width:16px;height:16px;" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    CLOSE MENU
+  </button>
   <nav class="p-4 space-y-1">
     <p class="text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-widest mb-2">Nigeria</p>
     <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--accent)]" onclick="navigate('nigeria-politics')">🏛️ Nigerian Politics</button>
@@ -133,8 +142,9 @@
 <!-- TOP NAV -->
 <nav id="main-nav" class="px-4 py-3">
   <div class="max-w-6xl mx-auto flex items-center gap-4">
-    <button onclick="openSidebar()" class="text-[var(--foreground)] p-1 rounded-lg hover:bg-[var(--accent)]">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    <button onclick="openSidebar()" style="background:#16a34a;border:none;border-radius:10px;padding:8px 12px;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(22,163,74,0.35);transition:background 0.2s;" onmouseover="this.style.background='#15803d'" onmouseout="this.style.background='#16a34a'">
+      <svg style="width:22px;height:22px;flex-shrink:0;" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      <span style="color:white;font-size:0.78rem;font-weight:700;letter-spacing:0.03em;" class="hide-mobile">MENU</span>
     </button>
     <span class="font-bold text-[var(--foreground)] text-lg">🌍 PolitiLearn Africa</span>
     <div class="flex-1 hide-mobile">

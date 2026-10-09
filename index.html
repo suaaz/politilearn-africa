@@ -2365,18 +2365,8 @@ function toggleDarkMode() {
   if (sbIcon) sbIcon.textContent = isDark ? '☀️' : '🌙';
   if (sbLabel) sbLabel.textContent = isDark ? 'Light Mode' : 'Dark Mode';
 }
-// Load saved preference on startup
-(function() {
-  if (localStorage.getItem('politilearn-dark') === '1') {
-    document.documentElement.classList.add('dark');
-    const btn = document.getElementById('dark-toggle');
-    const sbIcon = document.getElementById('sidebar-dark-icon');
-    const sbLabel = document.getElementById('sidebar-dark-label');
-    if (btn) btn.textContent = '☀️';
-    if (sbIcon) sbIcon.textContent = '☀️';
-    if (sbLabel) sbLabel.textContent = 'Light Mode';
-  }
-})();
+// Apply dark mode immediately to prevent FOUC (buttons updated in DOMContentLoaded)
+if (localStorage.getItem('politilearn-dark') === '1') document.documentElement.classList.add('dark');
 
 // =================== EXTRA HISTORICAL FIGURES ===================
 const extraFigures = [
@@ -2659,6 +2649,17 @@ document.addEventListener('DOMContentLoaded', function() {
       hideSearch();
     }
   });
+
+  // Restore dark mode preference
+  if (localStorage.getItem('politilearn-dark') === '1') {
+    document.documentElement.classList.add('dark');
+    const btn = document.getElementById('dark-toggle');
+    const sbIcon = document.getElementById('sidebar-dark-icon');
+    const sbLabel = document.getElementById('sidebar-dark-label');
+    if (btn) btn.textContent = '☀️';
+    if (sbIcon) sbIcon.textContent = '☀️';
+    if (sbLabel) sbLabel.textContent = 'Light Mode';
+  }
 });
 </script>
 </body>

@@ -1,0 +1,1682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PolitiLearn Africa — Nigeria, Africa & The World</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* Base resets */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--background); color: var(--foreground); font-family: inherit; }
+
+    /* Nav */
+    #main-nav { position: sticky; top: 0; z-index: 100; background: var(--sidebar); border-bottom: 1px solid var(--border); }
+    .nav-link { cursor: pointer; transition: color 0.2s; }
+    .nav-link:hover, .nav-link.active { color: var(--primary); }
+
+    /* Sidebar */
+    #sidebar { position: fixed; top: 0; left: -280px; height: 100vh; width: 280px; background: var(--sidebar); border-right: 1px solid var(--border); z-index: 200; transition: left 0.3s ease; overflow-y: auto; }
+    #sidebar.open { left: 0; }
+    #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 150; }
+    #overlay.visible { display: block; }
+
+    /* Cards */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; transition: box-shadow 0.2s; }
+    .card:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.10); }
+
+    /* Topic sections */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ELI5 badge */
+    .eli5-block { background: #fef9c3; border-left: 4px solid #eab308; border-radius: 8px; padding: 1rem 1.25rem; color: #713f12; }
+    .eli5-block.dark { background: #422006; border-color: #ca8a04; color: #fef3c7; }
+    .eli5-toggle { cursor: pointer; user-select: none; }
+
+    /* Context block */
+    .context-block { background: var(--accent); border-radius: 8px; padding: 1rem 1.25rem; border-left: 4px solid var(--primary); }
+
+    /* Practical examples */
+    .practical-block { background: var(--content, var(--card)); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; }
+
+    /* Book ref */
+    .book-ref { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem; background: var(--card); border: 1px solid var(--border); border-radius: 8px; }
+
+    /* Figure */
+    .figure-card { text-align: center; }
+    .figure-card img { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); margin-bottom: 0.5rem; background: var(--muted-foreground); }
+    .figure-placeholder { width: 96px; height: 96px; border-radius: 50%; border: 3px solid var(--primary); margin: 0 auto 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 2rem; background: linear-gradient(135deg, #16a34a22, #15803d44); }
+
+    /* Tag */
+    .tag { display: inline-block; font-size: 0.72rem; padding: 2px 10px; border-radius: 999px; font-weight: 600; }
+    .tag-green { background: #bbf7d0; color: #14532d; }
+    .tag-blue { background: #bfdbfe; color: #1e3a8a; }
+    .tag-red { background: #fecaca; color: #7f1d1d; }
+    .tag-yellow { background: #fef9c3; color: #713f12; }
+    .tag-purple { background: #e9d5ff; color: #581c87; }
+
+    /* Hero gradient */
+    .hero-grad { background: linear-gradient(135deg, #064e3b 0%, #065f46 40%, #166534 100%); }
+
+    /* Progress bar */
+    .progress-bar { height: 4px; background: var(--border); border-radius: 2px; }
+    .progress-fill { height: 100%; background: var(--primary); border-radius: 2px; transition: width 0.3s; }
+
+    /* Responsive grid helpers */
+    @media (max-width: 640px) {
+      .hide-mobile { display: none !important; }
+      .sidebar-text { font-size: 0.85rem; }
+    }
+
+    /* Accordion */
+    .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+    .accordion-content.open { max-height: 9999px; }
+
+    /* Tab buttons */
+    .tab-btn { cursor: pointer; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid var(--border); background: var(--card); color: var(--muted-foreground); transition: all 0.2s; }
+    .tab-btn.active { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+
+    /* Timeline */
+    .timeline-line { border-left: 2px solid var(--border); padding-left: 1.25rem; }
+    .timeline-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--primary); display: inline-block; margin-left: -1.4rem; margin-right: 0.5rem; flex-shrink: 0; }
+
+    /* Comparison table */
+    .cmp-table th { background: var(--card); color: var(--foreground); font-weight: 700; padding: 0.6rem 1rem; text-align: left; border-bottom: 2px solid var(--border); }
+    .cmp-table td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); color: var(--foreground); }
+    .cmp-table tr:hover td { background: var(--accent); }
+
+    /* Search */
+    #search-input { background: var(--card); border: 1px solid var(--border); color: var(--foreground); border-radius: 8px; padding: 0.5rem 1rem; width: 100%; outline: none; }
+    #search-input:focus { border-color: var(--primary); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="overlay" onclick="closeSidebar()"></div>
+<aside id="sidebar">
+  <div class="p-4 border-b border-[var(--border)] flex items-center justify-between">
+    <span class="font-bold text-lg text-[var(--foreground)]">🌍 PolitiLearn</span>
+    <button onclick="closeSidebar()" class="text-[var(--muted-foreground)] hover:text-[var(--foreground)] text-xl">✕</button>
+  </div>
+  <nav class="p-4 space-y-1">
+    <p class="text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-widest mb-2">Nigeria</p>
+    <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--accent)]" onclick="navigate('nigeria-politics')">🏛️ Nigerian Politics</button>
+    <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--accent)]" onclick="navigate('nigeria-economy')">💰 Nigerian Economy</button>
+    <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--accent)]" onclick="navigate('nigeria-history')">📜 Nigerian History</button>
+    <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--accent)]" onclick="navigate('nigeria-figures')">👤 Historical Figures</button>
+
+    <p class="text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-widest mt-4 mb-2">Africa</p>
+    <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--accent)]" onclick="navigate('africa-politics')">🌍 African Politics</button>
+    <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--accent)]" onclick="navigate('africa-economy')">📈 African Economies</button>
+    <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--accent)]" onclick="navigate('africa-history')">🏺 African History</button>
+
+    <p class="text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-widest mt-4 mb-2">The World</p>
+    <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--accent)]" onclick="navigate('world-economics')">🌐 World Economics</button>
+    <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--accent)]" onclick="navigate('world-politics')">🗳️ Global Politics</button>
+    <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--accent)]" onclick="navigate('world-history')">🏛️ World History</button>
+
+    <p class="text-xs font-bold text-[var(--muted-foreground)] uppercase tracking-widest mt-4 mb-2">Concepts</p>
+    <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--accent)]" onclick="navigate('concepts')">💡 Key Concepts</button>
+    <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--accent)]" onclick="navigate('glossary')">📖 Glossary</button>
+    <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--accent)]" onclick="navigate('books')">📚 Book Library</button>
+  </nav>
+</aside>
+
+<!-- TOP NAV -->
+<nav id="main-nav" class="px-4 py-3">
+  <div class="max-w-6xl mx-auto flex items-center gap-4">
+    <button onclick="openSidebar()" class="text-[var(--foreground)] p-1 rounded-lg hover:bg-[var(--accent)]">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <span class="font-bold text-[var(--foreground)] text-lg">🌍 PolitiLearn Africa</span>
+    <div class="flex-1 hide-mobile">
+      <input id="search-input" placeholder="Search topics, figures, concepts…" oninput="handleSearch(this.value)" />
+    </div>
+    <div class="flex gap-2 hide-mobile">
+      <button onclick="navigate('nigeria-politics')" class="tab-btn text-sm">Nigeria</button>
+      <button onclick="navigate('africa-politics')" class="tab-btn text-sm">Africa</button>
+      <button onclick="navigate('world-economics')" class="tab-btn text-sm">World</button>
+    </div>
+    <!-- ELI5 Toggle -->
+    <label class="flex items-center gap-2 cursor-pointer">
+      <span class="text-xs font-semibold text-[var(--muted-foreground)] hide-mobile">🧒 ELI5</span>
+      <div class="relative">
+        <input type="checkbox" id="eli5-toggle" class="sr-only" onchange="toggleELI5(this.checked)">
+        <div class="w-10 h-5 bg-[var(--border)] rounded-full peer-checked:bg-[var(--primary)] transition-colors duration-200" id="eli5-track" style="background:var(--border)"></div>
+        <div id="eli5-thumb" class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200"></div>
+      </div>
+    </label>
+  </div>
+</nav>
+
+<!-- SEARCH RESULTS -->
+<div id="search-results" class="hidden max-w-6xl mx-auto px-4 mt-4">
+  <div class="card p-4" id="search-results-inner"></div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main class="max-w-6xl mx-auto px-4 py-6 space-y-6" id="main-content">
+
+  <!-- =================== HOME =================== -->
+  <section id="sec-home" class="section active">
+    <!-- Hero -->
+    <div class="hero-grad rounded-2xl p-8 text-white mb-6">
+      <div class="flex flex-col md:flex-row md:items-center gap-6">
+        <div class="flex-1">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="text-5xl">🌍</span>
+            <div>
+              <h1 class="text-3xl md:text-4xl font-extrabold">PolitiLearn Africa</h1>
+              <p class="text-green-200 text-sm">Nigeria · Africa · The World</p>
+            </div>
+          </div>
+          <p class="text-green-100 text-base md:text-lg max-w-xl">
+            Your personalized guide to understanding politics, economics, and history — from the streets of Lagos to the corridors of Washington D.C.
+          </p>
+          <div class="flex flex-wrap gap-3 mt-5">
+            <button onclick="navigate('nigeria-politics')" class="bg-white text-green-800 font-bold px-5 py-2.5 rounded-xl hover:bg-green-50 transition text-sm">Start with Nigeria →</button>
+            <button onclick="navigate('concepts')" class="bg-green-700 text-white font-bold px-5 py-2.5 rounded-xl hover:bg-green-600 transition text-sm border border-green-500">Key Concepts</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3 text-center hide-mobile">
+          <div class="bg-green-800 bg-opacity-60 rounded-xl p-3"><div class="text-2xl">🇳🇬</div><div class="text-xs text-green-200 mt-1">Nigeria</div></div>
+          <div class="bg-green-800 bg-opacity-60 rounded-xl p-3"><div class="text-2xl">🌍</div><div class="text-xs text-green-200 mt-1">Africa</div></div>
+          <div class="bg-green-800 bg-opacity-60 rounded-xl p-3"><div class="text-2xl">🌐</div><div class="text-xs text-green-200 mt-1">World</div></div>
+          <div class="bg-green-800 bg-opacity-60 rounded-xl p-3"><div class="text-2xl">🏛️</div><div class="text-xs text-green-200 mt-1">Politics</div></div>
+          <div class="bg-green-800 bg-opacity-60 rounded-xl p-3"><div class="text-2xl">💰</div><div class="text-xs text-green-200 mt-1">Economics</div></div>
+          <div class="bg-green-800 bg-opacity-60 rounded-xl p-3"><div class="text-2xl">📜</div><div class="text-xs text-green-200 mt-1">History</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Start Grid -->
+    <h2 class="text-xl font-bold text-[var(--foreground)] mb-3">Where do you want to start?</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div class="card cursor-pointer hover:border-green-500" onclick="navigate('nigeria-politics')">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-2xl">🏛️</span>
+          <span class="tag tag-green">Nigeria</span>
+        </div>
+        <h3 class="font-bold text-[var(--foreground)]">Nigerian Politics</h3>
+        <p class="text-sm text-[var(--muted-foreground)] mt-1">Presidential system, INEC, federalism, the parties, and how power really works.</p>
+      </div>
+      <div class="card cursor-pointer hover:border-yellow-500" onclick="navigate('nigeria-economy')">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-2xl">💰</span>
+          <span class="tag tag-yellow">Nigeria</span>
+        </div>
+        <h3 class="font-bold text-[var(--foreground)]">Nigerian Economy</h3>
+        <p class="text-sm text-[var(--muted-foreground)] mt-1">Oil dependency, inflation, the naira, CBN policy, and diversification challenges.</p>
+      </div>
+      <div class="card cursor-pointer hover:border-blue-500" onclick="navigate('nigeria-history')">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-2xl">📜</span>
+          <span class="tag tag-blue">Nigeria</span>
+        </div>
+        <h3 class="font-bold text-[var(--foreground)]">Nigerian History</h3>
+        <p class="text-sm text-[var(--muted-foreground)] mt-1">Pre-colonial empires, colonialism, independence, Civil War, and military coups.</p>
+      </div>
+      <div class="card cursor-pointer hover:border-purple-500" onclick="navigate('africa-politics')">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-2xl">🌍</span>
+          <span class="tag tag-purple">Africa</span>
+        </div>
+        <h3 class="font-bold text-[var(--foreground)]">African Politics</h3>
+        <p class="text-sm text-[var(--muted-foreground)] mt-1">AU, democracy vs authoritarianism, coups in the Sahel, and Pan-Africanism.</p>
+      </div>
+      <div class="card cursor-pointer hover:border-red-500" onclick="navigate('world-economics')">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-2xl">🌐</span>
+          <span class="tag tag-red">World</span>
+        </div>
+        <h3 class="font-bold text-[var(--foreground)]">World Economics</h3>
+        <p class="text-sm text-[var(--muted-foreground)] mt-1">IMF, World Bank, global trade, debt, capitalism vs socialism in practice.</p>
+      </div>
+      <div class="card cursor-pointer hover:border-green-500" onclick="navigate('concepts')">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-2xl">💡</span>
+          <span class="tag tag-green">Learn</span>
+        </div>
+        <h3 class="font-bold text-[var(--foreground)]">Key Concepts</h3>
+        <p class="text-sm text-[var(--muted-foreground)] mt-1">GDP, inflation, democracy, corruption, federalism — explained simply.</p>
+      </div>
+    </div>
+
+    <!-- ELI5 tip -->
+    <div class="eli5-block mt-6 flex items-start gap-3" id="eli5-home-tip">
+      <span class="text-2xl">🧒</span>
+      <div>
+        <p class="font-bold text-sm mb-1">🧒 Explain Like I'm 5 Mode</p>
+        <p class="text-sm">Toggle the <strong>ELI5</strong> switch in the top right corner anytime! It simplifies every explanation to be as easy as a bedtime story — no complicated jargon.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== NIGERIA POLITICS =================== -->
+  <section id="sec-nigeria-politics" class="section">
+    <div class="flex items-center gap-3 mb-6">
+      <span class="text-3xl">🏛️</span>
+      <div>
+        <h2 class="text-2xl font-bold text-[var(--foreground)]">Nigerian Politics</h2>
+        <p class="text-[var(--muted-foreground)] text-sm">How Nigeria is governed, who holds power, and how the system works</p>
+      </div>
+    </div>
+
+    <!-- ELI5 Block -->
+    <div class="eli5-block mb-6" id="eli5-nigeria-politics">
+      <p class="font-bold mb-1">🧒 Explain Like I'm 5</p>
+      <p class="text-sm">Imagine Nigeria is a very big family of 220 million people. The father of the house is called the <strong>President</strong>. He lives in a big white house in Abuja. But he can't just do whatever he wants — there are other family members (the Senate and House of Representatives) who can say "No, that's not fair!" And then there are judges who make sure everyone follows the family rules (the Constitution). Nigeria has many tribes and religions, so the family sometimes argues a LOT — but that's democracy!</p>
+    </div>
+
+    <!-- Full Context -->
+    <div class="card mb-4">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="tag tag-green">Full Context</span>
+        <h3 class="font-bold text-[var(--foreground)]">The Structure of Nigerian Government</h3>
+      </div>
+      <p class="text-sm text-[var(--muted-foreground)] mb-3">Nigeria operates a <strong>Federal Presidential Constitutional Republic</strong>, modeled heavily after the United States system. This means power is divided between:</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+        <div class="practical-block text-center">
+          <div class="text-2xl mb-1">👨‍⚖️</div>
+          <p class="font-bold text-sm text-[var(--foreground)]">Executive Branch</p>
+          <p class="text-xs text-[var(--muted-foreground)] mt-1">President + Vice President. Runs day-to-day governance, foreign policy, budgets, and federal ministries.</p>
+        </div>
+        <div class="practical-block text-center">
+          <div class="text-2xl mb-1">🏛️</div>
+          <p class="font-bold text-sm text-[var(--foreground)]">Legislative Branch</p>
+          <p class="text-xs text-[var(--muted-foreground)] mt-1">National Assembly = Senate (109 seats) + House of Reps (360 seats). They make laws and approve budgets.</p>
+        </div>
+        <div class="practical-block text-center">
+          <div class="text-2xl mb-1">⚖️</div>
+          <p class="font-bold text-sm text-[var(--foreground)]">Judicial Branch</p>
+          <p class="text-xs text-[var(--muted-foreground)] mt-1">Supreme Court, Court of Appeal, Federal High Court. They interpret the Constitution and settle disputes.</p>
+        </div>
+      </div>
+      <p class="text-sm text-[var(--muted-foreground)]">Nigeria also has <strong>36 states + FCT Abuja</strong>, each with its own governor and state house of assembly — a true federal structure. Below states are <strong>774 Local Government Areas (LGAs)</strong>.</p>
+    </div>
+
+    <!-- Federalism Deep Dive -->
+    <div class="card mb-4">
+      <button class="w-full text-left flex items-center justify-between" onclick="toggleAccordion('fed-acc')">
+        <span class="font-bold text-[var(--foreground)]">🗺️ Federalism: Why Nigeria Is Structured This Way</span>
+        <span id="fed-acc-icon">▼</span>
+      </button>
+      <div id="fed-acc" class="accordion-content">
+        <div class="mt-4 space-y-3">
+          <p class="text-sm text-[var(--muted-foreground)]">Nigeria has over <strong>250 ethnic groups</strong>. The Hausa-Fulani dominate the North, Yoruba the Southwest, and Igbo the Southeast. Federalism was chosen to give each region some autonomy and prevent any single group from dominating all others.</p>
+          <div class="context-block">
+            <p class="text-sm font-semibold text-[var(--foreground)] mb-1">📌 Practical Parallel: USA vs Nigeria</p>
+            <p class="text-sm text-[var(--muted-foreground)]">The US federal system works because state governments have genuine fiscal independence (most US states collect their own taxes). In Nigeria, states depend on the <strong>Federal Account Allocation Committee (FAAC)</strong> for monthly oil revenue sharing — this creates a "rentier federalism" where states compete for oil money rather than developing local economies. States like Kano or Ogun that could thrive on internal revenue are instead addicted to Abuja allocations.</p>
+          </div>
+          <div class="eli5-block" id="eli5-federalism">
+            <p class="text-sm font-bold">🧒 ELI5: Federalism</p>
+            <p class="text-sm mt-1">Imagine your school has 36 classrooms. Each classroom has its own class captain (Governor). But there's still a school principal (President) who makes the big rules for the whole school. The classrooms can make small rules for themselves (like when to eat lunch), but the big rules (like school uniform) come from the principal. Nigeria works the same way!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Elections & INEC -->
+    <div class="card mb-4">
+      <button class="w-full text-left flex items-center justify-between" onclick="toggleAccordion('inec-acc')">
+        <span class="font-bold text-[var(--foreground)]">🗳️ Elections & INEC — How Nigerians Choose Their Leaders</span>
+        <span id="inec-acc-icon">▼</span>
+      </button>
+      <div id="inec-acc" class="accordion-content">
+        <div class="mt-4 space-y-3">
+          <p class="text-sm text-[var(--muted-foreground)]">The <strong>Independent National Electoral Commission (INEC)</strong> conducts all federal and state elections. Elections happen every 4 years. The President needs to win 25% of votes in 24 of Nigeria's 36 states — a unique constitutional requirement meant to ensure national spread.</p>
+          <div class="practical-block">
+            <p class="text-sm font-semibold text-[var(--foreground)] mb-2">⚡ Why Nigerian Elections Are Controversial</p>
+            <ul class="text-sm text-[var(--muted-foreground)] space-y-1 list-disc list-inside">
+              <li>Vote-buying is rampant (₦5,000–₦20,000 per voter in some areas)</li>
+              <li>Thuggery and ballot box snatching remain issues</li>
+              <li>BVAS (Bimodal Voter Accreditation System) was introduced in 2023 to reduce fraud</li>
+              <li>Court challenges are almost mandatory after major elections</li>
+              <li>INEC's independence is questioned — its chairman is appointed by the President</li>
+            </ul>
+          </div>
+          <div class="context-block">
+            <p class="text-sm font-semibold text-[var(--foreground)] mb-1">🌍 Parallel: Ghana's Electoral Commission</p>
+            <p class="text-sm text-[var(--muted-foreground)]">Ghana's Electoral Commission is widely regarded as one of Africa's most credible. Ghana has had <strong>peaceful power transfers in 2000, 2008, 2016</strong> — something Nigeria is still working toward achieving consistently. The difference? Ghana's EC has stronger institutional independence and a smaller, more unified national identity.</p>
+          </div>
+          <div class="eli5-block" id="eli5-inec">
+            <p class="text-sm font-bold">🧒 ELI5: Elections</p>
+            <p class="text-sm mt-1">Elections are like a school vote for class captain. Everyone gets one vote. The person with the most votes wins! INEC is like the teacher who makes sure nobody cheats. But sometimes some students try to cheat anyway — that's why grown-ups argue so much after elections.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Political Parties -->
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-3">🏴 Major Political Parties</h3>
+      <div class="overflow-x-auto">
+        <table class="cmp-table w-full text-sm">
+          <thead><tr><th>Party</th><th>Full Name</th><th>Ideology</th><th>Key Base</th></tr></thead>
+          <tbody>
+            <tr><td><span class="font-bold text-blue-600">APC</span></td><td>All Progressives Congress</td><td>Progressive conservatism</td><td>North, Southwest</td></tr>
+            <tr><td><span class="font-bold text-red-600">PDP</span></td><td>Peoples Democratic Party</td><td>Social democracy</td><td>South-south, Southeast</td></tr>
+            <tr><td><span class="font-bold text-purple-600">LP</span></td><td>Labour Party</td><td>Social democracy, youth</td><td>Southeast, urban youth</td></tr>
+            <tr><td><span class="font-bold text-yellow-600">NNPP</span></td><td>New Nigeria People's Party</td><td>Populist</td><td>Kano, North</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="context-block mt-3">
+        <p class="text-sm text-[var(--muted-foreground)]"><strong>Key insight:</strong> Nigerian parties are largely not ideological — they are vehicles for personalities. A politician can switch from APC to PDP and back without changing any policies. This is called <em>"political defection"</em> and it's endemic in Nigerian politics. Compare this to the UK, where Labour and Conservative have clear, consistent ideological differences spanning 100+ years.</p>
+      </div>
+    </div>
+
+    <!-- Book References -->
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-3">📚 Books to Read on Nigerian Politics</h3>
+      <div class="space-y-3">
+        <div class="book-ref">
+          <span class="text-2xl">📘</span>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">The Trouble with Nigeria — Chinua Achebe (1983)</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">A sharp, short critique of Nigerian leadership failures. Achebe argues the problem is simply a failure of leadership. Still painfully relevant today.</p>
+            <span class="tag tag-green mt-1 inline-block">Essential Read</span>
+          </div>
+        </div>
+        <div class="book-ref">
+          <span class="text-2xl">📗</span>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">There Was a Country — Chinua Achebe (2012)</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">Achebe's memoir recounting the Biafran War and its political aftermath. Essential for understanding ethnic politics in Nigeria.</p>
+          </div>
+        </div>
+        <div class="book-ref">
+          <span class="text-2xl">📙</span>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">My Command — Olusegun Obasanjo (1980)</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">A military insider's account of the civil war and the journey to civilian rule. Written by a man who later became a two-time head of state.</p>
+          </div>
+        </div>
+        <div class="book-ref">
+          <span class="text-2xl">📕</span>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">Nigeria: Dancing on the Brink — John Campbell (2010)</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">A former US Ambassador's analysis of Nigeria's political fragility and potential. Very readable for those new to Nigerian politics.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== NIGERIA ECONOMY =================== -->
+  <section id="sec-nigeria-economy" class="section">
+    <div class="flex items-center gap-3 mb-6">
+      <span class="text-3xl">💰</span>
+      <div>
+        <h2 class="text-2xl font-bold text-[var(--foreground)]">Nigerian Economy</h2>
+        <p class="text-[var(--muted-foreground)] text-sm">Africa's largest economy by GDP — and its biggest paradox</p>
+      </div>
+    </div>
+
+    <div class="eli5-block mb-6" id="eli5-nigeria-economy">
+      <p class="font-bold mb-1">🧒 Explain Like I'm 5</p>
+      <p class="text-sm">Imagine your family earns money mostly by selling one thing — say, tomatoes. As long as tomatoes are expensive, your family is rich. But when tomatoes become cheap, your family struggles to pay rent! That's Nigeria with oil. Nigeria earns about 90% of its money from selling oil. When oil prices fall, Nigeria suffers badly. Smart families try to earn money from many different things — that's what economists call <em>diversification</em>.</p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div class="card text-center">
+        <p class="text-2xl font-bold text-green-600">~$477B</p>
+        <p class="text-xs text-[var(--muted-foreground)]">GDP (2023, nominal)</p>
+      </div>
+      <div class="card text-center">
+        <p class="text-2xl font-bold text-red-500">~32%</p>
+        <p class="text-xs text-[var(--muted-foreground)]">Unemployment rate</p>
+      </div>
+      <div class="card text-center">
+        <p class="text-2xl font-bold text-yellow-500">~24%</p>
+        <p class="text-xs text-[var(--muted-foreground)]">Inflation rate (2024)</p>
+      </div>
+      <div class="card text-center">
+        <p class="text-2xl font-bold text-blue-500">#1</p>
+        <p class="text-xs text-[var(--muted-foreground)]">Largest African Economy</p>
+      </div>
+    </div>
+
+    <!-- Oil Economy -->
+    <div class="card mb-4">
+      <button class="w-full text-left flex items-center justify-between" onclick="toggleAccordion('oil-acc')">
+        <span class="font-bold text-[var(--foreground)]">🛢️ The Oil Curse — Nigeria's Greatest Blessing and Burden</span>
+        <span id="oil-acc-icon">▼</span>
+      </button>
+      <div id="oil-acc" class="accordion-content">
+        <div class="mt-4 space-y-3">
+          <p class="text-sm text-[var(--muted-foreground)]">Nigeria discovered oil in Oloibiri, Bayelsa State in <strong>1956</strong>. By the 1970s, oil accounted for over 80% of government revenue. This created what economists call the <strong>"Resource Curse"</strong> or <strong>"Dutch Disease"</strong> — the economy became so dependent on oil that other sectors (agriculture, manufacturing) withered.</p>
+          <div class="context-block">
+            <p class="text-sm font-semibold text-[var(--foreground)] mb-1">🌍 Parallel: Norway vs Nigeria — Same Oil, Different Story</p>
+            <p class="text-sm text-[var(--muted-foreground)]">Norway also has enormous oil wealth. But Norway created a <strong>Sovereign Wealth Fund</strong> (now worth over $1.7 trillion) that invests oil money for future generations. Norway's citizens get world-class healthcare and education from this fund. Nigeria created similar funds (Excess Crude Account, Sovereign Wealth Fund) but they are perpetually raided by politicians and poorly managed. The lesson: oil doesn't make a country rich — good institutions do.</p>
+          </div>
+          <div class="practical-block">
+            <p class="text-sm font-semibold text-[var(--foreground)] mb-2">📊 Nigeria's Oil Revenue Facts</p>
+            <ul class="text-sm text-[var(--muted-foreground)] space-y-1 list-disc list-inside">
+              <li>Oil contributes ~90% of foreign exchange earnings</li>
+              <li>NNPCL (Nigerian National Petroleum Company Limited) is the state oil company</li>
+              <li>Oil theft (bunkering) costs Nigeria ~$1B/month in losses</li>
+              <li>The Niger Delta has been severely polluted — lawsuits against Shell ongoing</li>
+              <li>Nigeria subsidized petrol for decades (removed by Tinubu in 2023)</li>
+            </ul>
+          </div>
+          <div class="eli5-block" id="eli5-oil">
+            <p class="text-sm font-bold">🧒 ELI5: The Oil Curse</p>
+            <p class="text-sm mt-1">Imagine you find a treasure chest full of gold. You stop going to school and stop learning new skills because you have gold! But one day, the gold runs out. Now you have no gold AND no skills. That's what happened to many oil countries. Norway was smarter — they kept going to school AND saved the gold for later!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Naira & CBN -->
+    <div class="card mb-4">
+      <button class="w-full text-left flex items-center justify-between" onclick="toggleAccordion('naira-acc')">
+        <span class="font-bold text-[var(--foreground)]">💱 The Naira — Nigeria's Currency Crisis Explained</span>
+        <span id="naira-acc-icon">▼</span>
+      </button>
+      <div id="naira-acc" class="accordion-content">
+        <div class="mt-4 space-y-3">
+          <p class="text-sm text-[var(--muted-foreground)]">The Nigerian Naira (₦) has lost over <strong>90% of its value</strong> against the US Dollar in the last decade. In 2015, $1 = ₦200. By 2024, $1 = ₦1,500+. This is called <strong>currency devaluation</strong>.</p>
+          <div class="context-block">
+            <p class="text-sm font-semibold text-[var(--foreground)] mb-1">Why the Naira Falls</p>
+            <p class="text-sm text-[var(--muted-foreground)]">1. Nigeria imports almost everything (including refined petrol, despite having oil) — creating massive dollar demand. 2. The CBN printed money to fund government deficits, causing inflation. 3. Foreign investors lost confidence, withdrawing dollars. 4. Parallel FX markets (black market) created multiple exchange rates, distorting the economy.</p>
+          </div>
+          <div class="context-block">
+            <p class="text-sm font-semibold text-[var(--foreground)] mb-1">🌍 Parallel: Zimbabwe & Argentina</p>
+            <p class="text-sm text-[var(--muted-foreground)]">Zimbabwe printed money to fund government spending — their currency became worthless (100 trillion Zimbabwe dollar notes!). They eventually abandoned their currency entirely and adopted the US dollar. Argentina, with chronic currency crises, recently elected Javier Milei who proposed dollarization. Nigeria risks a similar trajectory if structural reforms don't succeed.</p>
+          </div>
+          <div class="eli5-block" id="eli5-naira">
+            <p class="text-sm font-bold">🧒 ELI5: Why the Naira Falls</p>
+            <p class="text-sm mt-1">Imagine your classroom uses blue cards as money. If the teacher prints too many blue cards, each one becomes worth less because everyone has too many. That's inflation! And if everyone in class prefers to trade in red cards (dollars) instead, the blue cards become even less valuable. Nigeria's naira is the blue card!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tinubu's Reforms -->
+    <div class="card mb-4">
+      <button class="w-full text-left flex items-center justify-between" onclick="toggleAccordion('reform-acc')">
+        <span class="font-bold text-[var(--foreground)]">⚡ Tinubu's 2023 Reforms — Bold or Brutal?</span>
+        <span id="reform-acc-icon">▼</span>
+      </button>
+      <div id="reform-acc" class="accordion-content">
+        <div class="mt-4 space-y-3">
+          <p class="text-sm text-[var(--muted-foreground)]">On inauguration day, May 29, 2023, President Bola Tinubu announced: <em>"Subsidy is gone!"</em> — removing the petrol subsidy that had cost Nigeria over $10 billion/year. He also unified the exchange rate, allowing the naira to float freely. The immediate effect: fuel prices tripled, naira crashed, inflation soared to 30%+.</p>
+          <div class="practical-block">
+            <p class="text-sm font-semibold text-[var(--foreground)] mb-2">📊 Was It the Right Move? Arguments For vs Against</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+              <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+                <p class="font-bold text-green-800 text-xs mb-1">✅ Arguments FOR</p>
+                <ul class="text-xs text-green-700 space-y-1 list-disc list-inside">
+                  <li>Subsidy was economically unsustainable</li>
+                  <li>Smuggling fuel to neighbors costs billions</li>
+                  <li>IMF & World Bank had demanded this for years</li>
+                  <li>Freed up money for infrastructure</li>
+                </ul>
+              </div>
+              <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p class="font-bold text-red-800 text-xs mb-1">❌ Arguments AGAINST</p>
+                <ul class="text-xs text-red-700 space-y-1 list-disc list-inside">
+                  <li>No social safety nets for the poor</li>
+                  <li>Inflation hit the vulnerable hardest</li>
+                  <li>Should have been done gradually</li>
+                  <li>No refinery built in decades to justify removal</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="context-block">
+            <p class="text-sm font-semibold text-[var(--foreground)] mb-1">🌍 Parallel: Ghana's IMF Bailout (2022–23)</p>
+            <p class="text-sm text-[var(--muted-foreground)]">Ghana in 2022 went to the IMF for a $3B bailout — similar austerity followed: fuel prices rose, currency crashed. Ghana's path out involved debt restructuring. Nigeria's challenge is bigger because its economy is 10x Ghana's size, making IMF bailouts less viable. The lesson: fiscal discipline must come <em>before</em> a crisis, not during one.</p>
+          </div>
+          <div class="eli5-block" id="eli5-subsidy">
+            <p class="text-sm font-bold">🧒 ELI5: Subsidy Removal</p>
+            <p class="text-sm mt-1">Imagine the government pays part of your lunch money every day. That sounds nice! But the government runs out of money and goes into debt. One day the government says "No more free lunch — pay full price!" That hurts, especially for the children whose parents can't afford full price. That's exactly what happened with Nigeria's fuel subsidy.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Book Refs -->
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-3">📚 Books on Nigerian & African Economics</h3>
+      <div class="space-y-3">
+        <div class="book-ref">
+          <span class="text-2xl">📘</span>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">Dead Aid — Dambisa Moyo (2009)</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">Zambian economist argues that foreign aid has done more harm than good to Africa. Proposes market-based solutions instead. Controversial but essential.</p>
+            <span class="tag tag-blue mt-1 inline-block">African Economic Policy</span>
+          </div>
+        </div>
+        <div class="book-ref">
+          <span class="text-2xl">📗</span>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">Why Nations Fail — Daron Acemoglu & James Robinson (2012)</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">Argues that the difference between rich and poor countries is <em>institutions</em>, not geography or culture. Nigeria is used as a case study of extractive institutions.</p>
+            <span class="tag tag-green mt-1 inline-block">Essential Read</span>
+          </div>
+        </div>
+        <div class="book-ref">
+          <span class="text-2xl">📙</span>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">The Looting Machine — Tom Burgis (2015)</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">How Africa's resource wealth is extracted by a small elite and foreign corporations. Direct, disturbing, and data-rich. Nigeria's oil sector is examined in detail.</p>
+          </div>
+        </div>
+        <div class="book-ref">
+          <span class="text-2xl">📕</span>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">Africa's Business Revolution — Acha Leke et al. (2018)</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">The optimistic counterpoint — how African entrepreneurs are building billion-dollar industries. Written by McKinsey consultants, data-heavy and inspiring.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== NIGERIA HISTORY =================== -->
+  <section id="sec-nigeria-history" class="section">
+    <div class="flex items-center gap-3 mb-6">
+      <span class="text-3xl">📜</span>
+      <div>
+        <h2 class="text-2xl font-bold text-[var(--foreground)]">Nigerian History</h2>
+        <p class="text-[var(--muted-foreground)] text-sm">From ancient empires to the modern republic</p>
+      </div>
+    </div>
+
+    <div class="eli5-block mb-6" id="eli5-nigeria-history">
+      <p class="font-bold mb-1">🧒 Explain Like I'm 5</p>
+      <p class="text-sm">Long before Nigeria was called Nigeria, many powerful kingdoms lived there — like the Benin Kingdom that made amazing bronze statues, and the Sokoto Caliphate that ruled the North. Then British people came from far away and said "all this land is ours now!" and called it Nigeria in 1914. After many years of fighting for freedom, Nigeria became its own country in 1960. But then soldiers kept taking over the government (military coups) until 1999 when democracy finally came back properly.</p>
+    </div>
+
+    <!-- Timeline -->
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-4">🕐 Key Historical Timeline</h3>
+      <div class="timeline-line space-y-4">
+        <div class="flex items-start gap-3">
+          <div class="timeline-dot mt-1.5"></div>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">Pre-colonial era (before 1800s) — Great Empires</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">The Benin Kingdom (900 AD–1897), Oyo Empire, Sokoto Caliphate (1804), Kanem-Bornu Empire. These were sophisticated civilizations with trade routes, governance systems, and art.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="timeline-dot mt-1.5"></div>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">1861–1914 — British Colonization</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">Britain colonized Lagos in 1861. In 1914, Lord Lugard amalgamated Northern and Southern protectorates into one entity: "Nigeria" — named by Flora Shaw (Lugard's wife). This forced union of diverse peoples would define Nigeria's future challenges.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="timeline-dot mt-1.5"></div>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">October 1, 1960 — Independence</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">Nigeria gained independence peacefully. Tafawa Balewa became the first Prime Minister. Nigeria joined the UN and became a federation of 3 regions: North, West, East.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="timeline-dot mt-1.5"></div>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">1966–1979 — Military Coups Era</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">Nigeria suffered its first coup in January 1966. A counter-coup followed in July. 13 years of military rule followed, interrupted only briefly by attempts at civilian governance.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="timeline-dot mt-1.5"></div>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">1967–1970 — The Biafran Civil War</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">The Igbo-dominated Eastern Region declared independence as Biafra. A devastating 3-year war followed. Over 1 million people died, many from starvation. Nigeria was reunified under the motto "No victor, no vanquished."</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="timeline-dot mt-1.5"></div>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">1993 — The Annulled Election (Nigeria's Most Painful Moment)</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">MKO Abiola won Nigeria's freest election. Military ruler Ibrahim Babangida annulled the results. Protests erupted, Abiola was later jailed and died in detention in 1998. Many historians consider this Nigeria's greatest democratic tragedy.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="timeline-dot mt-1.5" style="background:#16a34a"></div>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">May 29, 1999 — Return to Democracy</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">Olusegun Obasanjo won the presidential election, beginning Nigeria's current democratic era known as the Fourth Republic. May 29 is now celebrated as "Democracy Day."</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pre-colonial empires -->
+    <div class="card mb-4">
+      <button class="w-full text-left flex items-center justify-between" onclick="toggleAccordion('empire-acc')">
+        <span class="font-bold text-[var(--foreground)]">🏺 Pre-Colonial Empires — Nigeria Before Europeans</span>
+        <span id="empire-acc-icon">▼</span>
+      </button>
+      <div id="empire-acc" class="accordion-content">
+        <div class="mt-4 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="practical-block">
+              <p class="font-bold text-sm text-[var(--foreground)] mb-1">🦁 The Benin Kingdom</p>
+              <p class="text-xs text-[var(--muted-foreground)]">Founded around 900 AD. By the 15th century, it was one of Africa's most sophisticated kingdoms. The Oba (king) had absolute authority. Benin bronzes — intricate metal sculptures — are now in museums worldwide, many controversially taken during the British "Punitive Expedition" of 1897. Germany recently began returning Benin bronzes. The UK is still debating.</p>
+            </div>
+            <div class="practical-block">
+              <p class="font-bold text-sm text-[var(--foreground)] mb-1">⚔️ The Oyo Empire</p>
+              <p class="text-xs text-[var(--muted-foreground)]">Dominated West Africa's interior from the 1400s–1800s. Known for its powerful cavalry and sophisticated constitutional system — the Alaafin (king) was checked by the Oyo Mesi (council of nobles). This early separation of powers predates many Western democracies!</p>
+            </div>
+            <div class="practical-block">
+              <p class="font-bold text-sm text-[var(--foreground)] mb-1">☪️ The Sokoto Caliphate</p>
+              <p class="text-xs text-[var(--muted-foreground)]">Founded in 1804 by Usman dan Fodio after a jihad (holy war) against the Hausa kings he considered corrupt. At its peak, it was one of the largest empires in Africa, encompassing most of northern Nigeria. Its influence persists today — northern Nigerian Islamic law (Sharia) draws from this tradition.</p>
+            </div>
+            <div class="practical-block">
+              <p class="font-bold text-sm text-[var(--foreground)] mb-1">🏰 The Kanem-Bornu Empire</p>
+              <p class="text-xs text-[var(--muted-foreground)]">One of Africa's longest-lasting empires (700 AD–1900 AD). Centered around Lake Chad. It had diplomatic relations with North Africa and the Ottoman Empire. The Mai (ruler) of Bornu sent ambassadors to Libya and Egypt in the 16th century.</p>
+            </div>
+          </div>
+          <div class="context-block">
+            <p class="text-sm font-semibold text-[var(--foreground)] mb-1">📌 Why This Matters Today</p>
+            <p class="text-sm text-[var(--muted-foreground)]">When British colonizers forced these kingdoms into one country in 1914, they assumed Africans had no governance traditions. They were wrong. Modern Nigeria's challenges — including the North-South divide — trace directly to how colonialism disrupted existing power structures and merged incompatible entities.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Books -->
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-3">📚 History Books to Read</h3>
+      <div class="space-y-3">
+        <div class="book-ref">
+          <span class="text-2xl">📘</span>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">Half of a Yellow Sun — Chimamanda Ngozi Adichie (2006)</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">A novel set during the Biafran War. Essential for understanding the human cost of Nigeria's civil war. Winner of the Orange Broadband Prize for Fiction.</p>
+            <span class="tag tag-green mt-1 inline-block">Essential Read</span>
+          </div>
+        </div>
+        <div class="book-ref">
+          <span class="text-2xl">📗</span>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">A History of Nigeria — Toyin Falola (2008)</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">Comprehensive academic history from pre-colonial times to the present. Written by one of Africa's foremost historians. Dense but authoritative.</p>
+          </div>
+        </div>
+        <div class="book-ref">
+          <span class="text-2xl">📙</span>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">Things Fall Apart — Chinua Achebe (1958)</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">The most widely read African novel ever. Chronicles the collision between Igbo civilization and British colonialism through the tragic hero Okonkwo.</p>
+            <span class="tag tag-blue mt-1 inline-block">Classic</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== NIGERIA HISTORICAL FIGURES =================== -->
+  <section id="sec-nigeria-figures" class="section">
+    <div class="flex items-center gap-3 mb-6">
+      <span class="text-3xl">👤</span>
+      <div>
+        <h2 class="text-2xl font-bold text-[var(--foreground)]">Nigerian Historical Figures</h2>
+        <p class="text-[var(--muted-foreground)] text-sm">The people who shaped Nigeria's destiny</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <!-- Nnamdi Azikiwe -->
+      <div class="card">
+        <div class="flex items-start gap-4">
+          <div class="figure-card flex-shrink-0">
+            <div class="figure-placeholder">🎓</div>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">Nnamdi Azikiwe</p>
+            <p class="text-xs text-[var(--muted-foreground)]">(1904–1996)</p>
+          </div>
+          <div class="flex-1">
+            <div class="flex flex-wrap gap-2 mb-2">
+              <span class="tag tag-green">Father of the Nation</span>
+              <span class="tag tag-blue">First President</span>
+            </div>
+            <p class="text-sm text-[var(--muted-foreground)]">Known as "Zik of Africa," Nnamdi Azikiwe was Nigeria's first President (1963–1966). A Pan-Africanist, journalist, and nationalist leader. Educated in the US, he returned to galvanize the independence movement through his newspaper the <em>West African Pilot</em>. He advocated for unity across ethnic lines — a message still needed today.</p>
+            <div class="eli5-block mt-3 text-xs" id="eli5-azikiwe">
+              <p class="font-bold">🧒 ELI5</p>
+              <p>Imagine your class was under a strict school prefect from another town. Zik was the student who studied really hard, came back, wrote a school newspaper, and convinced everyone to stand up and say "We want our own head boy!" That's what he did for Nigeria!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Obafemi Awolowo -->
+      <div class="card">
+        <div class="flex items-start gap-4">
+          <div class="figure-card flex-shrink-0">
+            <div class="figure-placeholder">📚</div>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">Obafemi Awolowo</p>
+            <p class="text-xs text-[var(--muted-foreground)]">(1909–1987)</p>
+          </div>
+          <div class="flex-1">
+            <div class="flex flex-wrap gap-2 mb-2">
+              <span class="tag tag-purple">Statesman</span>
+              <span class="tag tag-yellow">Economist</span>
+            </div>
+            <p class="text-sm text-[var(--muted-foreground)]">Arguably the most brilliant administrator Nigeria ever produced. As Western Region Premier, he introduced <strong>free primary education</strong> (1955), free health care, and built the first TV station in Africa. Called "the best President Nigeria never had." His <em>Path to Nigerian Freedom</em> remains a political masterpiece.</p>
+            <div class="eli5-block mt-3 text-xs" id="eli5-awolowo">
+              <p class="font-bold">🧒 ELI5</p>
+              <p>Awo was like the best school principal ever — he made school free for all the kids in his area, built hospitals, and created the first TV in Africa! He wanted to run the whole country but never got the chance. Many people still think he would have made Nigeria great.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ahmadu Bello -->
+      <div class="card">
+        <div class="flex items-start gap-4">
+          <div class="figure-card flex-shrink-0">
+            <div class="figure-placeholder">🏛️</div>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">Ahmadu Bello</p>
+            <p class="text-xs text-[var(--muted-foreground)]">(1910–1966)</p>
+          </div>
+          <div class="flex-1">
+            <div class="flex flex-wrap gap-2 mb-2">
+              <span class="tag tag-red">Northern Leader</span>
+              <span class="tag tag-blue">Sardauna of Sokoto</span>
+            </div>
+            <p class="text-sm text-[var(--muted-foreground)]">The Sardauna of Sokoto and Premier of Northern Nigeria. He chose to remain Premier rather than become Prime Minister, cementing northern dominance through regional consolidation. His assassination in the January 1966 coup remains a defining trauma for northern Nigeria. He built Ahmadu Bello University, one of Africa's largest.</p>
+            <div class="eli5-block mt-3 text-xs" id="eli5-bello">
+              <p class="font-bold">🧒 ELI5</p>
+              <p>Imagine the leader of the northern kids in school was so powerful and respected that he decided to stay as head of just the northern dormitory instead of becoming head boy of the whole school. That's what Bello did — he was that confident in his power!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MKO Abiola -->
+      <div class="card">
+        <div class="flex items-start gap-4">
+          <div class="figure-card flex-shrink-0">
+            <div class="figure-placeholder">⭐</div>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">MKO Abiola</p>
+            <p class="text-xs text-[var(--muted-foreground)]">(1937–1998)</p>
+          </div>
+          <div class="flex-1">
+            <div class="flex flex-wrap gap-2 mb-2">
+              <span class="tag tag-yellow">Symbol of Democracy</span>
+              <span class="tag tag-red">Martyr</span>
+            </div>
+            <p class="text-sm text-[var(--muted-foreground)]">Moshood Kashimawo Olawale Abiola won Nigeria's most credible election on June 12, 1993. Military ruler Babangida annulled the results. Abiola declared himself president, was arrested for treason, and died mysteriously in detention in 1998. June 12 is now Nigeria's Democracy Day in his honor, announced by President Buhari in 2018.</p>
+            <div class="eli5-block mt-3 text-xs" id="eli5-abiola">
+              <p class="font-bold">🧒 ELI5</p>
+              <p>Imagine winning a school election fairly and all the kids voted for you — but the teacher said "No, your votes don't count" for no good reason. That's exactly what happened to MKO Abiola. He went to prison rather than give up his mandate, and sadly died there. He's a hero.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wole Soyinka -->
+      <div class="card">
+        <div class="flex items-start gap-4">
+          <div class="figure-card flex-shrink-0">
+            <div class="figure-placeholder">✍️</div>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">Wole Soyinka</p>
+            <p class="text-xs text-[var(--muted-foreground)]">(1934–present)</p>
+          </div>
+          <div class="flex-1">
+            <div class="flex flex-wrap gap-2 mb-2">
+              <span class="tag tag-purple">Nobel Laureate</span>
+              <span class="tag tag-green">Literature</span>
+            </div>
+            <p class="text-sm text-[var(--muted-foreground)]">Africa's first Nobel Prize winner in Literature (1986). Playwright, poet, and political activist. Imprisoned for 22 months during the civil war for demanding ceasefire. His play <em>Death and the King's Horseman</em> is a masterpiece of African theatre. A persistent critic of military rule and corruption.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fela Kuti -->
+      <div class="card">
+        <div class="flex items-start gap-4">
+          <div class="figure-card flex-shrink-0">
+            <div class="figure-placeholder">🎵</div>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">Fela Anikulapo-Kuti</p>
+            <p class="text-xs text-[var(--muted-foreground)]">(1938–1997)</p>
+          </div>
+          <div class="flex-1">
+            <div class="flex flex-wrap gap-2 mb-2">
+              <span class="tag tag-green">Afrobeat Pioneer</span>
+              <span class="tag tag-red">Political Activist</span>
+            </div>
+            <p class="text-sm text-[var(--muted-foreground)]">Creator of Afrobeat — a fusion of jazz, funk, and West African rhythms. Used music as political protest against the Nigerian military government. His compound "Kalakuta Republic" was raided and burned by soldiers in 1977. Songs like <em>Zombie</em> (mocking soldiers) and <em>Water No Get Enemy</em> are timeless. Arrested over 200 times.</p>
+            <div class="eli5-block mt-3 text-xs" id="eli5-fela">
+              <p class="font-bold">🧒 ELI5</p>
+              <p>Imagine a musician who used his songs to tell the truth about how bad the government was — like singing rap battles against the president! And the president kept sending soldiers to stop him, but he kept making music! That's Fela — music as revolution!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== AFRICA POLITICS =================== -->
+  <section id="sec-africa-politics" class="section">
+    <div class="flex items-center gap-3 mb-6">
+      <span class="text-3xl">🌍</span>
+      <div>
+        <h2 class="text-2xl font-bold text-[var(--foreground)]">African Politics</h2>
+        <p class="text-[var(--muted-foreground)] text-sm">Democracy, coups, Pan-Africanism, and the fight for self-determination</p>
+      </div>
+    </div>
+
+    <div class="eli5-block mb-6" id="eli5-africa-politics">
+      <p class="font-bold mb-1">🧒 Explain Like I'm 5</p>
+      <p class="text-sm">Africa has 54 countries — all different, like 54 different classrooms in a huge school. Some classrooms are very peaceful and do great (like Botswana and Rwanda). Some classrooms keep having fights over who the head boy should be (military coups). And there's a school council called the African Union (AU) that tries to make rules for everyone — but it often doesn't have enough power to stop the class bullies.</p>
+    </div>
+
+    <!-- The AU -->
+    <div class="card mb-4">
+      <button class="w-full text-left flex items-center justify-between" onclick="toggleAccordion('au-acc')">
+        <span class="font-bold text-[var(--foreground)]">🤝 The African Union — Africa's Parliament</span>
+        <span id="au-acc-icon">▼</span>
+      </button>
+      <div id="au-acc" class="accordion-content">
+        <div class="mt-4 space-y-3">
+          <p class="text-sm text-[var(--muted-foreground)]">The <strong>African Union (AU)</strong> was founded in 2002 (replacing the OAU, founded 1963). It has 55 member states. The AU aims to promote unity, peace, and economic development across Africa — similar to what the EU does for Europe.</p>
+          <div class="context-block">
+            <p class="text-sm font-semibold text-[var(--foreground)] mb-1">🌍 AU vs EU — Why Africa's Union Is Weaker</p>
+            <p class="text-sm text-[var(--muted-foreground)]">The EU has a single currency (Euro), free movement, and member states surrender significant sovereignty. The AU has none of these. AU resolutions are largely non-binding, and the AU Commission lacks enforcement powers. When coups happen in Mali, Burkina Faso, and Niger, the AU can only "condemn" — it cannot intervene militarily without consensus. The AU's budget relies heavily on external donors (EU, US) — undermining its independence.</p>
+          </div>
+          <div class="practical-block">
+            <p class="text-sm font-semibold text-[var(--foreground)] mb-1">Agenda 2063</p>
+            <p class="text-sm text-[var(--muted-foreground)]">The AU's 50-year blueprint for Africa's development. Goals include: a single African passport, a continental free trade area (AfCFTA), and ending all conflicts. AfCFTA launched in 2021 — if fully implemented, it would create the world's largest free trade zone by number of countries.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coups in Sahel -->
+    <div class="card mb-4">
+      <button class="w-full text-left flex items-center justify-between" onclick="toggleAccordion('coup-acc')">
+        <span class="font-bold text-[var(--foreground)]">⚡ The Sahel Coup Wave — What's Really Happening?</span>
+        <span id="coup-acc-icon">▼</span>
+      </button>
+      <div id="coup-acc" class="accordion-content">
+        <div class="mt-4 space-y-3">
+          <p class="text-sm text-[var(--muted-foreground)]">Since 2020, West Africa has seen coups in: <strong>Mali (2020, 2021), Guinea (2021), Burkina Faso (2022), Niger (2023), Gabon (2023)</strong>. All are former French colonies. This is the highest concentration of coups since the 1960s.</p>
+          <div class="context-block">
+            <p class="text-sm font-semibold text-[var(--foreground)] mb-1">Why Are These Coups Happening?</p>
+            <p class="text-sm text-[var(--muted-foreground)]">1. <strong>Security failure:</strong> Jihadist insurgencies (linked to Al-Qaeda and ISIS) have devastated these countries. Elected governments failed to protect civilians. 2. <strong>Poverty:</strong> Despite French "aid," these are among the world's poorest countries. 3. <strong>Anti-French sentiment:</strong> The CFA Franc (currency controlled by France) is deeply resented. 4. <strong>Russian influence:</strong> Wagner Group (Russian mercenaries) has moved in, offering military support in exchange for mining rights.</p>
+          </div>
+          <div class="practical-block">
+            <p class="text-sm font-semibold text-[var(--foreground)] mb-2">🌍 The CFA Franc — France's Economic Grip on Africa</p>
+            <p class="text-sm text-[var(--muted-foreground)]">14 African countries use the CFA Franc, pegged to the Euro, with 50% of foreign reserves held in France's central bank. Critics call it neo-colonialism — France earns interest on African reserves while controlling monetary policy. Ghana, Nigeria, and other non-CFA countries have more currency sovereignty but also more volatility.</p>
+          </div>
+          <div class="eli5-block" id="eli5-sahel">
+            <p class="text-sm font-bold">🧒 ELI5: The Sahel Coups</p>
+            <p class="text-sm mt-1">Imagine the school bully (jihadists) keeps beating up students, and the head boy (elected president) can't stop it. So some of the bigger students (soldiers) push the head boy away and say "We'll deal with this ourselves!" That's a coup. The problem is — the new soldiers aren't always better than the old head boy, and now there are no more school rules!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Africa Success Stories -->
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-3">✅ African Political Success Stories</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="practical-block">
+          <p class="font-bold text-sm text-[var(--foreground)] mb-1">🇷🇼 Rwanda — From Genocide to Growth</p>
+          <p class="text-xs text-[var(--muted-foreground)]">In 1994, Rwanda experienced one of history's worst genocides — 800,000 people killed in 100 days. Today, Rwanda has the world's highest proportion of women in parliament (61%), universal healthcare, and one of Africa's fastest-growing economies. President Kagame's authoritarian developmentalism is debated — strong growth, but limited political freedoms. Parallel: Singapore under Lee Kuan Yew.</p>
+        </div>
+        <div class="practical-block">
+          <p class="font-bold text-sm text-[var(--foreground)] mb-1">🇧🇼 Botswana — Africa's Diamond Democracy</p>
+          <p class="text-xs text-[var(--muted-foreground)]">Botswana had one of the world's fastest-growing economies from 1966–2000. Diamond revenues were managed through a Sovereign Wealth Fund. It maintained democracy since independence — one of the few African countries never to have had a coup. Contrast: Neighbor Zimbabwe, also with diamonds, descended into dictatorship and hyperinflation.</p>
+        </div>
+        <div class="practical-block">
+          <p class="font-bold text-sm text-[var(--foreground)] mb-1">🇬🇭 Ghana — West Africa's Democratic Anchor</p>
+          <p class="text-xs text-[var(--muted-foreground)]">Multiple peaceful transfers of power. Strong civil society and independent media. Ghana's 2008 election was decided by less than 40,000 votes — and the loser conceded peacefully, celebrated globally. Shows Nigeria's neighbor what good governance looks like.</p>
+        </div>
+        <div class="practical-block">
+          <p class="font-bold text-sm text-[var(--foreground)] mb-1">🇿🇦 South Africa — Flawed but Functional Democracy</p>
+          <p class="text-xs text-[var(--muted-foreground)]">Despite the ANC's dominance and serious corruption (Zuma's State Capture), South Africa has an independent judiciary that has jailed a former president (Zuma, 2021). Free press, vibrant opposition. The 2024 elections brought a coalition government — historic. Still dealing with massive inequality (worst Gini coefficient globally).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Historical African Figures -->
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-4">👤 Key African Historical Figures</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex items-start gap-3">
+          <div class="figure-placeholder" style="width:64px;height:64px;font-size:1.5rem;flex-shrink:0">✊</div>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">Kwame Nkrumah — Ghana (1909–1972)</p>
+            <span class="tag tag-green text-xs">Pan-Africanist</span>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">First leader of independent Ghana (1957). Visionary Pan-Africanist who dreamed of a United States of Africa. Overthrown in a CIA-backed coup in 1966 — a cautionary tale about how Western powers intervened to remove African leaders who were "too independent."</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="figure-placeholder" style="width:64px;height:64px;font-size:1.5rem;flex-shrink:0">🌹</div>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">Thomas Sankara — Burkina Faso (1949–1987)</p>
+            <span class="tag tag-red text-xs">Revolutionary</span>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">Called "Africa's Che Guevara." As President of Burkina Faso (1983–1987), he launched mass literacy, women's rights campaigns, reforestation, and anti-corruption drives — all on a shoestring budget. Assassinated in a coup led by his former ally Blaise Compaoré (allegedly with French and Ivorian backing). His legacy inspires the current Sahel coup leaders.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="figure-placeholder" style="width:64px;height:64px;font-size:1.5rem;flex-shrink:0">⚖️</div>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">Nelson Mandela — South Africa (1918–2013)</p>
+            <span class="tag tag-purple text-xs">Moral Leader</span>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">Imprisoned for 27 years for fighting apartheid. Emerged to lead South Africa's first democratic election (1994) without vengeance — chose reconciliation over retribution. The Truth and Reconciliation Commission he supported remains a global model for post-conflict healing. Served only one term, setting the democratic norm.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="figure-placeholder" style="width:64px;height:64px;font-size:1.5rem;flex-shrink:0">📜</div>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">Patrice Lumumba — Congo (1925–1961)</p>
+            <span class="tag tag-yellow text-xs">Martyr</span>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">Congo's first democratically elected Prime Minister. Served only 77 days before being overthrown by a Western-backed coup and executed. Belgium and the CIA have been implicated. His death symbolizes how Cold War powers manipulated African independence for their own mineral interests (Congo has enormous cobalt, copper, and uranium reserves).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-3">📚 Books on African Politics</h3>
+      <div class="space-y-3">
+        <div class="book-ref"><span class="text-2xl">📘</span><div><p class="font-bold text-sm text-[var(--foreground)]">Africa: A Biography of a Continent — John Reader (1997)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">A sweeping, readable history of the continent from geological formation to modern day. The best single-volume African history.</p><span class="tag tag-green mt-1 inline-block">Essential</span></div></div>
+        <div class="book-ref"><span class="text-2xl">📗</span><div><p class="font-bold text-sm text-[var(--foreground)]">How Europe Underdeveloped Africa — Walter Rodney (1972)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">Classic analysis of how colonialism systematically extracted wealth from Africa. Still the definitive text on this argument. Required reading for anyone serious about African political economy.</p><span class="tag tag-red mt-1 inline-block">Classic</span></div></div>
+        <div class="book-ref"><span class="text-2xl">📙</span><div><p class="font-bold text-sm text-[var(--foreground)]">The State of Africa — Martin Meredith (2005)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">A comprehensive history of independent Africa from 1950 to 2005. Balanced, readable, and sobering. Covers every major crisis, war, and political drama.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== AFRICA ECONOMY =================== -->
+  <section id="sec-africa-economy" class="section">
+    <div class="flex items-center gap-3 mb-6">
+      <span class="text-3xl">📈</span>
+      <div>
+        <h2 class="text-2xl font-bold text-[var(--foreground)]">African Economies</h2>
+        <p class="text-[var(--muted-foreground)] text-sm">The world's youngest continent vs its oldest economic problems</p>
+      </div>
+    </div>
+
+    <div class="eli5-block mb-6" id="eli5-africa-economy">
+      <p class="font-bold mb-1">🧒 Explain Like I'm 5</p>
+      <p class="text-sm">Africa has more young people than any other continent — by 2050, 1 in 4 people on Earth will be African! That's like having the most energetic kids in the school. But many of those kids don't have schools to go to, good roads to walk on, or banks to save their pocket money in. If Africa can fix those problems — schools, roads, banks — it could become the most powerful continent in the world. That's the opportunity AND the challenge.</p>
+    </div>
+
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-3">💡 AfCFTA — Africa's Biggest Economic Bet</h3>
+      <p class="text-sm text-[var(--muted-foreground)] mb-3">The <strong>African Continental Free Trade Area (AfCFTA)</strong>, launched in 2021, aims to create a single market of 1.3 billion people with a combined GDP of $3.4 trillion. If it works, it would be the world's largest free trade zone by country count (54 countries).</p>
+      <div class="context-block mb-3">
+        <p class="text-sm font-semibold text-[var(--foreground)] mb-1">🌍 Parallel: The European Single Market</p>
+        <p class="text-sm text-[var(--muted-foreground)]">The EU single market (1993) transformed European prosperity — free movement of goods, services, capital, and people. AfCFTA aims for similar benefits. The key difference: African countries trade MORE with Europe and China than with each other (only ~15% of Africa's trade is intra-African vs ~60% for Europe). Roads and rail between African countries are poor, making trade costly. Nigeria, paradoxically, was one of the last to sign AfCFTA — worried about flooding from Chinese goods via other African countries.</p>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-3">🇨🇳 China in Africa — Partner or New Colonizer?</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+          <p class="font-bold text-green-800 text-xs mb-1">✅ China's Contributions</p>
+          <ul class="text-xs text-green-700 space-y-1 list-disc list-inside">
+            <li>Built roads, railways, hospitals, stadiums</li>
+            <li>No political conditionality ("no democracy strings")</li>
+            <li>Kenya's SGR railway (Nairobi-Mombasa)</li>
+            <li>Largest trading partner for Africa since 2009</li>
+          </ul>
+        </div>
+        <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+          <p class="font-bold text-red-800 text-xs mb-1">⚠️ Concerns</p>
+          <ul class="text-xs text-red-700 space-y-1 list-disc list-inside">
+            <li>Debt traps: Zambia defaulted in 2020, owing China billions</li>
+            <li>Chinese workers instead of local employment</li>
+            <li>Extractive deals (minerals for infrastructure)</li>
+            <li>Political influence — "digital authoritarianism" exports</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== AFRICA HISTORY =================== -->
+  <section id="sec-africa-history" class="section">
+    <div class="flex items-center gap-3 mb-6">
+      <span class="text-3xl">🏺</span>
+      <div>
+        <h2 class="text-2xl font-bold text-[var(--foreground)]">African History</h2>
+        <p class="text-[var(--muted-foreground)] text-sm">Civilizations, colonialism, liberation, and renaissance</p>
+      </div>
+    </div>
+
+    <div class="eli5-block mb-6" id="eli5-africa-history">
+      <p class="font-bold mb-1">🧒 Explain Like I'm 5</p>
+      <p class="text-sm">Africa is actually where ALL human beings come from — your great-great-great-great-grandparents were African! Africa had amazing kingdoms and universities long before Europe did. Then European countries came and took Africa's land, resources, and even its people (the slave trade). After a long fight, Africa got its independence back in the 1950s–1970s. Now Africa is trying to rebuild — and that's not easy when so much was taken.</p>
+    </div>
+
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-3">🏺 Ancient African Civilizations</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="practical-block">
+          <p class="font-bold text-sm text-[var(--foreground)] mb-1">🏛️ Ancient Egypt (Kemet)</p>
+          <p class="text-xs text-[var(--muted-foreground)]">One of humanity's earliest and greatest civilizations. Built the pyramids, developed mathematics, astronomy, and medicine. The Pharaoh Ramesses II ruled an empire stretching from Sudan to Syria. Modern Egypt debates its relationship to sub-Saharan Africa — Cheikh Anta Diop's scholarship argues powerfully for its African roots.</p>
+        </div>
+        <div class="practical-block">
+          <p class="font-bold text-sm text-[var(--foreground)] mb-1">📚 The Mali Empire & Timbuktu</p>
+          <p class="text-xs text-[var(--muted-foreground)]">Emperor Mansa Musa (reigned 1312–1337) of the Mali Empire was the richest person in human history — his 1324 pilgrimage to Mecca with 60,000 people and tons of gold literally crashed Middle Eastern gold markets. Timbuktu was home to the University of Sankore — a world-class center of Islamic learning with 25,000 students in the 1400s.</p>
+        </div>
+        <div class="practical-block">
+          <p class="font-bold text-sm text-[var(--foreground)] mb-1">🌍 The Great Zimbabwe</p>
+          <p class="text-xs text-[var(--muted-foreground)]">A massive stone city in modern Zimbabwe, built without mortar by the Shona people (1100–1450 AD). At its peak, it housed 18,000 people and traded with Persia, Arabia, and China. Colonial-era Europeans refused to believe Africans built it — they invented stories of Phoenicians or Israelites to deny African achievement. Modern archaeology confirms it was built by indigenous Africans.</p>
+        </div>
+        <div class="practical-block">
+          <p class="font-bold text-sm text-[var(--foreground)] mb-1">⚡ The Zulu Kingdom</p>
+          <p class="text-xs text-[var(--muted-foreground)]">King Shaka Zulu (1787–1828) transformed a small clan into a military empire through revolutionary tactics — the "bull horn" encirclement formation. His Zulus defeated the British at the Battle of Isandlwana in 1879 — one of the worst defeats the British Army ever suffered in Africa. Eventually overwhelmed by superior firepower.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <button class="w-full text-left flex items-center justify-between" onclick="toggleAccordion('colonialism-acc')">
+        <span class="font-bold text-[var(--foreground)]">🗺️ The Scramble for Africa (1884–1885) — Divided by Strangers</span>
+        <span id="colonialism-acc-icon">▼</span>
+      </button>
+      <div id="colonialism-acc" class="accordion-content">
+        <div class="mt-4 space-y-3">
+          <p class="text-sm text-[var(--muted-foreground)]">At the <strong>Berlin Conference (1884–85)</strong>, 14 European powers carved up Africa — without inviting a single African to the table. Within 30 years, 90% of Africa was under European control. Ethnic groups were split across borders; enemies were placed together. These artificial borders are the root of many modern African conflicts.</p>
+          <div class="context-block">
+            <p class="text-sm font-semibold text-[var(--foreground)] mb-1">📌 How This Shapes Today's Politics</p>
+            <p class="text-sm text-[var(--muted-foreground)]">Nigeria: Yoruba in Nigeria and Benin Republic were one people, now in two countries. Hausa people span Nigeria, Niger, and Chad. Rwanda: Belgians introduced identity cards separating Hutu and Tutsi — intensifying divisions that led to the 1994 genocide. Cameroon: Two different colonial languages (English and French) in one country — currently in civil war (Anglophone crisis).</p>
+          </div>
+          <div class="eli5-block" id="eli5-colonialism">
+            <p class="text-sm font-bold">🧒 ELI5: The Berlin Conference</p>
+            <p class="text-sm mt-1">Imagine some adults from another neighborhood came and drew random lines through your estate, dividing your family's house between different owners — without asking your family. Then they made some of your cousins live under different rules. When they finally left, the lines they drew stayed — and your family has been arguing about them ever since. That's what happened to Africa.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-3">📚 African History Books</h3>
+      <div class="space-y-3">
+        <div class="book-ref"><span class="text-2xl">📘</span><div><p class="font-bold text-sm text-[var(--foreground)]">King Leopold's Ghost — Adam Hochschild (1998)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">How Belgium's King Leopold II killed up to 10 million Congolese people while extracting rubber. One of history's great crimes, largely unknown. Essential for understanding Congo's modern trauma.</p><span class="tag tag-red mt-1 inline-block">Must Read</span></div></div>
+        <div class="book-ref"><span class="text-2xl">📗</span><div><p class="font-bold text-sm text-[var(--foreground)]">Season of Migration to the North — Tayeb Salih (1966)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">A Sudanese novel exploring colonialism, identity, and cultural displacement. Called the most important Arab/African novel of the 20th century.</p></div></div>
+        <div class="book-ref"><span class="text-2xl">📙</span><div><p class="font-bold text-sm text-[var(--foreground)]">Cheikh Anta Diop: Precolonial Black Africa (1987)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">Senegalese scholar's account of the sophistication of pre-colonial African governance, economics, and culture. A powerful counter-narrative to Eurocentric history.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== WORLD ECONOMICS =================== -->
+  <section id="sec-world-economics" class="section">
+    <div class="flex items-center gap-3 mb-6">
+      <span class="text-3xl">🌐</span>
+      <div>
+        <h2 class="text-2xl font-bold text-[var(--foreground)]">World Economics</h2>
+        <p class="text-[var(--muted-foreground)] text-sm">How the global economy works — and who it works for</p>
+      </div>
+    </div>
+
+    <div class="eli5-block mb-6" id="eli5-world-economics">
+      <p class="font-bold mb-1">🧒 Explain Like I'm 5</p>
+      <p class="text-sm">Imagine the whole world is one giant market. Countries sell things they're good at making, and buy things from countries who make them better. The US and China are the biggest traders — like the richest kids in school who everyone wants to be friends with. The IMF is like the school bank — when a country runs out of money, it lends them some, but with very strict rules about how to spend it. And the World Bank is like a school building fund — giving money to build roads and hospitals in poor countries.</p>
+    </div>
+
+    <!-- Key Economic Concepts -->
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-4">💡 Essential Economic Concepts</h3>
+      <div class="space-y-3">
+
+        <div>
+          <button class="w-full text-left flex items-center justify-between py-2" onclick="toggleAccordion('gdp-acc')">
+            <span class="font-semibold text-sm text-[var(--foreground)]">📊 GDP — What Is It Really?</span>
+            <span id="gdp-acc-icon" class="text-xs text-[var(--muted-foreground)]">▼</span>
+          </button>
+          <div id="gdp-acc" class="accordion-content pl-4 border-l border-[var(--border)]">
+            <p class="text-sm text-[var(--muted-foreground)] mt-2">GDP (Gross Domestic Product) = total value of all goods and services produced in a country in one year. Nigeria's GDP ≈ $477B. USA ≈ $27 trillion. But GDP doesn't tell you about inequality — Nigeria's GDP grew while millions got poorer (because oil wealth concentrates at the top).</p>
+            <div class="eli5-block mt-2" id="eli5-gdp"><p class="text-xs font-bold">🧒 ELI5</p><p class="text-xs mt-1">GDP is like counting all the cookies your class made in a year. The class with the most cookies sounds richest! But if 2 students made 1,000 cookies each and 28 students made 0, the class isn't really rich — it's very unequal. That's why economists also look at GDP <em>per person</em> and inequality measures like the Gini Index.</p></div>
+          </div>
+        </div>
+
+        <div>
+          <button class="w-full text-left flex items-center justify-between py-2" onclick="toggleAccordion('inf-acc')">
+            <span class="font-semibold text-sm text-[var(--foreground)]">📈 Inflation — Why Prices Keep Rising</span>
+            <span id="inf-acc-icon" class="text-xs text-[var(--muted-foreground)]">▼</span>
+          </button>
+          <div id="inf-acc" class="accordion-content pl-4 border-l border-[var(--border)]">
+            <p class="text-sm text-[var(--muted-foreground)] mt-2">Inflation = the general rise in prices over time. 2–3% inflation is healthy (economies grow). 20%+ inflation (like Nigeria's current ~24%) means money loses value fast. Causes: too much money in circulation (money printing), supply shortages, imported inflation (when the naira falls, imports cost more).</p>
+            <div class="context-block mt-2"><p class="text-sm font-semibold text-[var(--foreground)] mb-1">🌍 Worst Historical Inflations</p><p class="text-sm text-[var(--muted-foreground)]">Zimbabwe (2008): 89.7 sextillion percent/month. Germany (1923): Wheelbarrows of cash to buy bread. Venezuela (2018): 1,000,000% annual inflation. Nigeria is far from these extremes but the direction matters.</p></div>
+            <div class="eli5-block mt-2" id="eli5-inflation"><p class="text-xs font-bold">🧒 ELI5</p><p class="text-xs mt-1">Last year, a loaf of bread cost ₦500. This year it costs ₦600. That's 20% inflation! Your ₦500 pocket money can't buy the same bread anymore. Inflation is like a thief that slowly steals the power of your money.</p></div>
+          </div>
+        </div>
+
+        <div>
+          <button class="w-full text-left flex items-center justify-between py-2" onclick="toggleAccordion('debt-acc')">
+            <span class="font-semibold text-sm text-[var(--foreground)]">💳 National Debt — When Countries Borrow</span>
+            <span id="debt-acc-icon" class="text-xs text-[var(--muted-foreground)]">▼</span>
+          </button>
+          <div id="debt-acc" class="accordion-content pl-4 border-l border-[var(--border)]">
+            <p class="text-sm text-[var(--muted-foreground)] mt-2">Nigeria's total debt crossed $100 billion by 2023. Debt servicing (interest payments) consumes over 90% of government revenue — meaning almost all money collected goes to paying loans, leaving little for schools, hospitals, or roads.</p>
+            <div class="context-block mt-2"><p class="text-sm font-semibold text-[var(--foreground)] mb-1">🌍 Comparative: USA vs Nigeria Debt</p><p class="text-sm text-[var(--muted-foreground)]">The USA has $34 trillion in debt — the world's largest! But US debt is manageable because: (1) US borrows in its own currency (dollar), (2) Investors trust the US to repay, (3) US economy is 60x Nigeria's size. Nigeria borrows in dollars — if the naira falls, its debt in dollar terms grows. This is the debt trap that has crippled many developing countries.</p></div>
+            <div class="eli5-block mt-2" id="eli5-debt"><p class="text-xs font-bold">🧒 ELI5</p><p class="text-xs mt-1">If you borrow ₦1,000 from a friend, you owe ₦1,000. Simple! But Nigeria borrows dollars. If the naira falls from ₦1,000 to ₦1,500 per dollar, a $1 loan suddenly costs ₦1,500 to pay back! The loan got more expensive just because the currency fell. That's the currency trap.</p></div>
+          </div>
+        </div>
+
+        <div>
+          <button class="w-full text-left flex items-center justify-between py-2" onclick="toggleAccordion('cap-acc')">
+            <span class="font-semibold text-sm text-[var(--foreground)]">⚖️ Capitalism vs Socialism — The Big Debate</span>
+            <span id="cap-acc-icon" class="text-xs text-[var(--muted-foreground)]">▼</span>
+          </button>
+          <div id="cap-acc" class="accordion-content pl-4 border-l border-[var(--border)]">
+            <p class="text-sm text-[var(--muted-foreground)] mt-2">Pure capitalism: markets decide everything. Pure socialism: government controls everything. In practice, ALL modern economies are <em>mixed</em>. The debate is about the mix.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+              <div class="practical-block">
+                <p class="text-xs font-bold text-[var(--foreground)] mb-1">🇺🇸 USA — Market-Led Capitalism</p>
+                <p class="text-xs text-[var(--muted-foreground)]">Strong private sector, minimal social safety nets (compared to Europe). Result: world's largest economy, highest billionaire count, but also high inequality and no universal healthcare.</p>
+              </div>
+              <div class="practical-block">
+                <p class="text-xs font-bold text-[var(--foreground)] mb-1">🇸🇪 Sweden — Social Democracy</p>
+                <p class="text-xs text-[var(--muted-foreground)]">Free market with heavy redistribution. High taxes (57% top rate) fund universal healthcare, free university, generous unemployment benefits. High quality of life, strong innovation (IKEA, Spotify, Volvo).</p>
+              </div>
+              <div class="practical-block">
+                <p class="text-xs font-bold text-[var(--foreground)] mb-1">🇨🇳 China — State Capitalism</p>
+                <p class="text-xs text-[var(--muted-foreground)]">Private markets exist but the Communist Party directs the economy. Result: lifted 800 million from poverty in 40 years — history's greatest poverty reduction. But also authoritarian control, limited freedoms, wealth inequality rising.</p>
+              </div>
+              <div class="practical-block">
+                <p class="text-xs font-bold text-[var(--foreground)] mb-1">🇳🇬 Nigeria — Mixed but Dysfunctional</p>
+                <p class="text-xs text-[var(--muted-foreground)]">In theory a mixed economy. In practice, the state dominates through oil revenues but delivers poor services. Private sector thrives despite government, not because of it. Informal economy may be 65% of actual economic activity.</p>
+              </div>
+            </div>
+            <div class="eli5-block mt-2" id="eli5-capitalism"><p class="text-xs font-bold">🧒 ELI5</p><p class="text-xs mt-1">Capitalism is like: "Everyone sell their own lunch — whoever cooks best makes more money!" Socialism is like: "The school kitchen cooks for everyone and shares equally." Social democracy is like: "Cook your own lunch but pay taxes so we can make sure even the kids who forgot lunch also eat." Most countries today use social democracy — the debate is just how much to share.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- World Economics Books -->
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-3">📚 World Economics Books</h3>
+      <div class="space-y-3">
+        <div class="book-ref"><span class="text-2xl">📘</span><div><p class="font-bold text-sm text-[var(--foreground)]">The Wealth of Nations — Adam Smith (1776)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">The founding text of modern economics. Introduced the "invisible hand" — the idea that free markets naturally allocate resources efficiently. Still debated and referenced today.</p><span class="tag tag-blue mt-1 inline-block">Classic</span></div></div>
+        <div class="book-ref"><span class="text-2xl">📗</span><div><p class="font-bold text-sm text-[var(--foreground)]">Capital in the Twenty-First Century — Thomas Piketty (2013)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">Argues that capitalism naturally concentrates wealth (returns to capital > economic growth). The richest 1% own more than the bottom 50%. Proposes a global wealth tax. Dense but revolutionary.</p></div></div>
+        <div class="book-ref"><span class="text-2xl">📙</span><div><p class="font-bold text-sm text-[var(--foreground)]">The Bottom Billion — Paul Collier (2007)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">Oxford economist examines why 1 billion people remain trapped in extreme poverty. Identifies 4 "traps": conflict, natural resources, being landlocked, and bad governance. Nigeria and Africa feature prominently.</p><span class="tag tag-green mt-1 inline-block">Essential</span></div></div>
+        <div class="book-ref"><span class="text-2xl">📕</span><div><p class="font-bold text-sm text-[var(--foreground)]">Freakonomics — Levitt & Dubner (2005)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">Applies economic thinking to unexpected questions. A fun, engaging entry point for those new to economics. Shows how incentives drive human behavior in surprising ways.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== WORLD POLITICS =================== -->
+  <section id="sec-world-politics" class="section">
+    <div class="flex items-center gap-3 mb-6">
+      <span class="text-3xl">🗳️</span>
+      <div>
+        <h2 class="text-2xl font-bold text-[var(--foreground)]">Global Politics</h2>
+        <p class="text-[var(--muted-foreground)] text-sm">Democracy, authoritarianism, and the new world order</p>
+      </div>
+    </div>
+
+    <div class="eli5-block mb-6" id="eli5-world-politics">
+      <p class="font-bold mb-1">🧒 Explain Like I'm 5</p>
+      <p class="text-sm">The world is like a big school with 195 countries as classrooms. After World War 2, America became the most powerful student — like the school bully who became the head boy and made all the rules. But now China is getting very strong too, and some other countries like Russia are causing trouble. The UN (United Nations) is like the school council — everyone gets a seat, but only 5 countries (USA, UK, France, Russia, China) have a <em>veto</em>, meaning they can say "No!" to any rule they don't like.</p>
+    </div>
+
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-3">🌐 Political Systems of the World</h3>
+      <div class="overflow-x-auto">
+        <table class="cmp-table w-full text-sm">
+          <thead><tr><th>System</th><th>How It Works</th><th>Examples</th><th>Key Feature</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tag tag-blue">Presidential</span></td><td>Elected president is head of state & government</td><td>🇺🇸 USA, 🇳🇬 Nigeria, 🇧🇷 Brazil</td><td>Strong executive, separation of powers</td></tr>
+            <tr><td><span class="tag tag-green">Parliamentary</span></td><td>Parliament elects the PM. Head of state is separate</td><td>🇬🇧 UK, 🇮🇳 India, 🇩🇪 Germany</td><td>Flexible, government can fall via no-confidence</td></tr>
+            <tr><td><span class="tag tag-purple">Semi-Presidential</span></td><td>Elected president + PM responsible to parliament</td><td>🇫🇷 France, 🇷🇺 Russia</td><td>Power shared between president and PM</td></tr>
+            <tr><td><span class="tag tag-red">Authoritarian</span></td><td>Single leader or party rules without accountability</td><td>🇨🇳 China, 🇷🇺 Russia, 🇰🇵 N. Korea</td><td>State controls most aspects of life</td></tr>
+            <tr><td><span class="tag tag-yellow">Theocracy</span></td><td>Religious law is civil law. Religious leaders govern</td><td>🇮🇷 Iran, 🇸🇦 Saudi Arabia</td><td>Religion and politics inseparable</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <button class="w-full text-left flex items-center justify-between" onclick="toggleAccordion('geopol-acc')">
+        <span class="font-bold text-[var(--foreground)]">⚡ US–China–Russia: The New Cold War</span>
+        <span id="geopol-acc-icon">▼</span>
+      </button>
+      <div id="geopol-acc" class="accordion-content">
+        <div class="mt-4 space-y-3">
+          <p class="text-sm text-[var(--muted-foreground)]">The world is shifting from US unipolarity (one superpower after 1991) to a <strong>multipolar world</strong> (multiple competing powers). China's GDP will likely overtake the US by the 2030s. Russia's Ukraine invasion (2022) shook the international order. Africa is increasingly a battleground for influence between these powers.</p>
+          <div class="context-block">
+            <p class="text-sm font-semibold text-[var(--foreground)] mb-1">🌍 What This Means for Nigeria & Africa</p>
+            <p class="text-sm text-[var(--muted-foreground)]">African countries are being courted by all sides: US offers military partnerships and democratic promotion. China offers infrastructure loans (Belt & Road). Russia offers military assistance (Wagner/Africa Corps). The wise African strategy is "strategic autonomy" — don't get locked into any bloc. Nigeria and South Africa advocate this through BRICS+ (which South Africa joined in 2024).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-3">📚 World Politics Books</h3>
+      <div class="space-y-3">
+        <div class="book-ref"><span class="text-2xl">📘</span><div><p class="font-bold text-sm text-[var(--foreground)]">The End of History and the Last Man — Francis Fukuyama (1992)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">Argued that liberal democracy had "won" history after the Cold War. Later revised as China and Russia showed democracy was not inevitable. Still important for understanding Western political assumptions.</p></div></div>
+        <div class="book-ref"><span class="text-2xl">📗</span><div><p class="font-bold text-sm text-[var(--foreground)]">The Clash of Civilizations — Samuel Huntington (1996)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">Argues future conflicts will be between civilizations (Western, Islamic, Chinese, African) not nations. Controversial but prescient in explaining much of today's geopolitical tension.</p></div></div>
+        <div class="book-ref"><span class="text-2xl">📙</span><div><p class="font-bold text-sm text-[var(--foreground)]">How Democracies Die — Steven Levitsky & Daniel Ziblatt (2018)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">Shows how democracies don't always end with coups — they can die slowly through elected leaders who gradually erode institutions. Chilling lessons for Nigeria and Africa.</p><span class="tag tag-red mt-1 inline-block">Very Relevant</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== WORLD HISTORY =================== -->
+  <section id="sec-world-history" class="section">
+    <div class="flex items-center gap-3 mb-6">
+      <span class="text-3xl">🏛️</span>
+      <div>
+        <h2 class="text-2xl font-bold text-[var(--foreground)]">World History</h2>
+        <p class="text-[var(--muted-foreground)] text-sm">Key events that shaped the world Nigeria lives in</p>
+      </div>
+    </div>
+
+    <div class="eli5-block mb-6" id="eli5-world-history">
+      <p class="font-bold mb-1">🧒 Explain Like I'm 5</p>
+      <p class="text-sm">To understand Nigeria today, you need to understand the big events that shaped the world. The Slave Trade took millions of Africans away. Colonialism divided Africa. Two World Wars killed millions and shuffled world power. The Cold War split the world into two teams (USA's team and USSR's team) and Africa was the playing field. Understanding all this helps you understand WHY Nigeria and Africa are where they are today.</p>
+    </div>
+
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-3">📜 World Events That Shaped Africa</h3>
+      <div class="space-y-4 timeline-line">
+        <div class="flex items-start gap-3">
+          <div class="timeline-dot mt-1.5" style="background:#dc2626"></div>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">1400s–1800s — The Transatlantic Slave Trade</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">~12.5 million Africans were enslaved and transported to the Americas. Entire civilizations were depopulated. Nigeria was a major source — Yoruba, Igbo, and Hausa peoples were among those enslaved. The economic logic: European sugar plantations needed labor; African kingdoms sold rivals for guns. The damage to African social structures took centuries to manifest.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="timeline-dot mt-1.5" style="background:#92400e"></div>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">1884–1885 — The Berlin Conference (Scramble for Africa)</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">14 European powers divided Africa. Britain got Nigeria. France got most of West and Central Africa. Belgium got Congo. Borders were drawn with rulers — straight lines through complex societies.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="timeline-dot mt-1.5" style="background:#1d4ed8"></div>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">1914–1918 & 1939–1945 — World Wars I & II</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">African soldiers fought in both wars for colonial powers. WWII weakened Britain and France so much they could no longer maintain empires. This accelerated African independence movements. The UN was created after WWII — giving newly independent African nations a (limited) voice.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="timeline-dot mt-1.5" style="background:#6d28d9"></div>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">1947–1991 — The Cold War</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">USA vs USSR. Africa became a proxy battleground. USA backed dictators if they were anti-communist (Mobutu in Congo, Apartheid South Africa). USSR backed socialist liberation movements. When the Cold War ended in 1991, US interest in Africa dropped sharply — leading to neglect during Rwanda's genocide (1994).</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="timeline-dot mt-1.5" style="background:#16a34a"></div>
+          <div>
+            <p class="font-bold text-sm text-[var(--foreground)]">1989–2000s — The Third Wave of Democracy</p>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">After communism collapsed in Eastern Europe, democratic movements swept Africa. South Africa ended apartheid (1994). Nigeria returned to democracy (1999). Ghana stabilized. But the "democracy dividend" was slow — leading to frustration and the current coup wave.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <h3 class="font-bold text-[var(--foreground)] mb-3">📚 World History Books</h3>
+      <div class="space-y-3">
+        <div class="book-ref"><span class="text-2xl">📘</span><div><p class="font-bold text-sm text-[var(--foreground)]">Sapiens: A Brief History of Humankind — Yuval Noah Harari (2011)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">How Homo sapiens came to dominate Earth. Covers cognitive revolution, agricultural revolution, and the rise of empires. Wildly readable and perspective-shifting. A great starting point for anyone.</p><span class="tag tag-green mt-1 inline-block">Start Here</span></div></div>
+        <div class="book-ref"><span class="text-2xl">📗</span><div><p class="font-bold text-sm text-[var(--foreground)]">The People's History of the United States — Howard Zinn (1980)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">US history told from the perspective of the oppressed — slaves, workers, indigenous peoples, women. Critical for understanding America's global influence and contradictions.</p></div></div>
+        <div class="book-ref"><span class="text-2xl">📙</span><div><p class="font-bold text-sm text-[var(--foreground)]">Guns, Germs, and Steel — Jared Diamond (1997)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">Why did some civilizations conquer others? Diamond argues it's geography, not race or intelligence. Important for deconstructing racist narratives about African "backwardness."</p><span class="tag tag-blue mt-1 inline-block">Essential</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== CONCEPTS =================== -->
+  <section id="sec-concepts" class="section">
+    <div class="flex items-center gap-3 mb-6">
+      <span class="text-3xl">💡</span>
+      <div>
+        <h2 class="text-2xl font-bold text-[var(--foreground)]">Key Concepts</h2>
+        <p class="text-[var(--muted-foreground)] text-sm">Core ideas in politics and economics — explained with real examples</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="card">
+        <h3 class="font-bold text-sm text-[var(--foreground)] mb-2">🏛️ Democracy</h3>
+        <p class="text-xs text-[var(--muted-foreground)] mb-2">A system where citizens elect their leaders and hold them accountable through free and fair elections, independent courts, and free press.</p>
+        <div class="eli5-block text-xs" id="eli5-democracy"><p class="font-bold">🧒 ELI5</p><p class="mt-1">Democracy means: <em>you</em> choose who runs the school. If they do a bad job, you vote them out next year. No one can just take over by force. Everyone's vote counts equally — whether you're rich or poor.</p></div>
+        <p class="text-xs text-[var(--muted-foreground)] mt-2"><strong>Nigeria context:</strong> Electoral integrity remains a challenge. The 2023 elections saw widespread use of BVAS technology but results were still disputed in courts.</p>
+      </div>
+
+      <div class="card">
+        <h3 class="font-bold text-sm text-[var(--foreground)] mb-2">🦠 Corruption</h3>
+        <p class="text-xs text-[var(--muted-foreground)] mb-2">When people in power abuse their position for personal gain — taking bribes, stealing public funds, or using influence unfairly.</p>
+        <div class="eli5-block text-xs" id="eli5-corruption"><p class="font-bold">🧒 ELI5</p><p class="mt-1">Imagine the school canteen sells rice for ₦200. But the canteen manager takes the rice money home instead of buying more rice. Now there's no rice for lunch! That's corruption — stealing from everyone to benefit yourself. It makes everyone poorer.</p></div>
+        <p class="text-xs text-[var(--muted-foreground)] mt-2"><strong>Nigeria ranks 145/180</strong> on Transparency International's Corruption Perceptions Index (2023). Each year, Nigeria loses an estimated $18 billion to corruption.</p>
+      </div>
+
+      <div class="card">
+        <h3 class="font-bold text-sm text-[var(--foreground)] mb-2">📊 Monetary Policy</h3>
+        <p class="text-xs text-[var(--muted-foreground)] mb-2">The Central Bank's control of money supply and interest rates to manage inflation and stimulate growth. Nigeria's CBN sets the Monetary Policy Rate (MPR).</p>
+        <div class="context-block text-xs mt-2"><p class="font-semibold mb-1">Practical Example</p><p>When inflation is high, CBN raises interest rates → borrowing becomes more expensive → people spend less → prices fall. Nigeria's MPR was raised to 26.75% in 2024 — making it very expensive to take business loans, but necessary to fight inflation.</p></div>
+      </div>
+
+      <div class="card">
+        <h3 class="font-bold text-sm text-[var(--foreground)] mb-2">🤝 Rule of Law</h3>
+        <p class="text-xs text-[var(--muted-foreground)] mb-2">The principle that everyone — including the president — must obey the law. Courts must be independent. No one is above the law.</p>
+        <div class="eli5-block text-xs" id="eli5-rule-of-law"><p class="font-bold">🧒 ELI5</p><p class="mt-1">Even the school principal has to follow the school rules. If the principal breaks a rule, they should face punishment too. In Nigeria, this principle is often violated — governors and senators rarely face consequences for corruption.</p></div>
+        <p class="text-xs text-[var(--muted-foreground)] mt-2"><strong>Counter-example:</strong> South Africa's courts ordered former President Zuma to prison (2021) — a powerful demonstration of rule of law in action, even against the powerful.</p>
+      </div>
+
+      <div class="card">
+        <h3 class="font-bold text-sm text-[var(--foreground)] mb-2">🌐 Globalization</h3>
+        <p class="text-xs text-[var(--muted-foreground)] mb-2">The increasing interconnection of world economies, cultures, and politics through trade, technology, and migration.</p>
+        <div class="practical-block text-xs mt-2"><p class="font-semibold mb-1">For Nigeria:</p><p>Globalization means Nigerian movies (Nollywood) are watched in Kenya. Nigerian music (Afrobeats) tops UK charts. Nigerian engineers work in Silicon Valley and send remittances home. But it also means Nigerian farmers compete with cheaper imports, and Nigerian factories lose to Chinese goods.</p></div>
+      </div>
+
+      <div class="card">
+        <h3 class="font-bold text-sm text-[var(--foreground)] mb-2">⚖️ Federalism vs Unitarism</h3>
+        <p class="text-xs text-[var(--muted-foreground)] mb-2">Federalism: power shared between central and regional governments (Nigeria, USA). Unitarism: central government has all power (France, Rwanda).</p>
+        <div class="context-block text-xs mt-2"><p class="font-semibold mb-1">Nigeria's Debate: True Federalism?</p><p>Many Nigerians, especially in the South, call for "true federalism" — meaning states control their own resources (oil) and pay taxes to the federal government, not the reverse. This debate underlies most of Nigeria's political tensions.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== GLOSSARY =================== -->
+  <section id="sec-glossary" class="section">
+    <div class="flex items-center gap-3 mb-6">
+      <span class="text-3xl">📖</span>
+      <div>
+        <h2 class="text-2xl font-bold text-[var(--foreground)]">Glossary</h2>
+        <p class="text-[var(--muted-foreground)] text-sm">Political and economic terms — plain and simple</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4" id="glossary-grid">
+        <!-- Glossary items rendered by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== BOOKS =================== -->
+  <section id="sec-books" class="section">
+    <div class="flex items-center gap-3 mb-6">
+      <span class="text-3xl">📚</span>
+      <div>
+        <h2 class="text-2xl font-bold text-[var(--foreground)]">Book Library</h2>
+        <p class="text-[var(--muted-foreground)] text-sm">All the books referenced on this site — your reading list</p>
+      </div>
+    </div>
+    <div id="books-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="mt-12 border-t border-[var(--border)] bg-[var(--sidebar)]">
+  <div class="max-w-6xl mx-auto px-4 py-6">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>
+        <p class="font-bold text-[var(--foreground)]">🌍 PolitiLearn Africa</p>
+        <p class="text-xs text-[var(--muted-foreground)] mt-1">Nigeria · Africa · The World — Learn, Question, Act</p>
+      </div>
+      <div class="flex flex-wrap gap-3 text-xs text-[var(--muted-foreground)]">
+        <button onclick="navigate('nigeria-politics')" class="hover:text-[var(--foreground)]">Nigeria</button>
+        <span>·</span>
+        <button onclick="navigate('africa-politics')" class="hover:text-[var(--foreground)]">Africa</button>
+        <span>·</span>
+        <button onclick="navigate('world-economics')" class="hover:text-[var(--foreground)]">World</button>
+        <span>·</span>
+        <button onclick="navigate('books')" class="hover:text-[var(--foreground)]">Book Library</button>
+        <span>·</span>
+        <button onclick="navigate('glossary')" class="hover:text-[var(--foreground)]">Glossary</button>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// =================== NAV & ROUTING ===================
+const sectionMap = {
+  'home': 'home',
+  'nigeria-politics': 'nigeria-politics',
+  'nigeria-economy': 'nigeria-economy',
+  'nigeria-history': 'nigeria-history',
+  'nigeria-figures': 'nigeria-figures',
+  'africa-politics': 'africa-politics',
+  'africa-economy': 'africa-economy',
+  'africa-history': 'africa-history',
+  'world-economics': 'world-economics',
+  'world-politics': 'world-politics',
+  'world-history': 'world-history',
+  'concepts': 'concepts',
+  'glossary': 'glossary',
+  'books': 'books',
+};
+
+function navigate(key) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const sectionId = sectionMap[key] || 'home';
+  const el = document.getElementById('sec-' + sectionId);
+  if (el) el.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  closeSidebar();
+  hideSearch();
+  if (key === 'glossary') renderGlossary();
+  if (key === 'books') renderBooks();
+}
+
+// =================== SIDEBAR ===================
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('overlay').classList.add('visible');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('visible');
+}
+
+// =================== ELI5 TOGGLE ===================
+let eli5Active = false;
+function toggleELI5(checked) {
+  eli5Active = checked;
+  const track = document.getElementById('eli5-track');
+  const thumb = document.getElementById('eli5-thumb');
+  const eli5Blocks = document.querySelectorAll('.eli5-block');
+  if (checked) {
+    track.style.background = 'var(--primary)';
+    thumb.style.transform = 'translateX(20px)';
+    eli5Blocks.forEach(b => { b.style.display = 'block'; b.style.border = '2px solid #eab308'; });
+    // Show a toast
+    showToast('🧒 ELI5 Mode ON — All explanations simplified!', '#16a34a');
+  } else {
+    track.style.background = 'var(--border)';
+    thumb.style.transform = 'translateX(0)';
+    eli5Blocks.forEach(b => { b.style.display = 'block'; b.style.border = ''; });
+    showToast('ELI5 Mode OFF', '#6b7280');
+  }
+}
+
+function showToast(msg, color) {
+  const toast = document.createElement('div');
+  toast.textContent = msg;
+  toast.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:${color};color:white;padding:10px 20px;border-radius:24px;font-size:14px;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.2);`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2500);
+}
+
+// =================== ACCORDION ===================
+function toggleAccordion(id) {
+  const content = document.getElementById(id);
+  const icon = document.getElementById(id + '-icon');
+  if (content.classList.contains('open')) {
+    content.classList.remove('open');
+    if (icon) icon.textContent = '▼';
+  } else {
+    content.classList.add('open');
+    if (icon) icon.textContent = '▲';
+  }
+}
+
+// =================== SEARCH ===================
+const searchIndex = [
+  { title: 'Nigerian Politics', desc: 'Presidential system, INEC, federalism, parties', section: 'nigeria-politics', tags: ['politics', 'nigeria', 'president', 'senate', 'INEC', 'election'] },
+  { title: 'Nigerian Economy', desc: 'Oil, naira, inflation, CBN, Tinubu reforms', section: 'nigeria-economy', tags: ['economy', 'oil', 'naira', 'inflation', 'GDP', 'CBN'] },
+  { title: 'Nigerian History', desc: 'Pre-colonial empires, independence, civil war, democracy', section: 'nigeria-history', tags: ['history', 'Biafra', 'independence', 'colonial', 'Benin'] },
+  { title: 'Historical Figures', desc: 'Azikiwe, Awolowo, Bello, Abiola, Soyinka, Fela', section: 'nigeria-figures', tags: ['figures', 'Azikiwe', 'Awolowo', 'Abiola', 'Fela', 'Soyinka'] },
+  { title: 'African Politics', desc: 'AU, coups, Sahel, democracy, Pan-Africanism', section: 'africa-politics', tags: ['AU', 'coup', 'Sahel', 'democracy', 'Africa', 'Nkrumah', 'Sankara', 'Mandela'] },
+  { title: 'African Economies', desc: 'AfCFTA, China in Africa, CFA franc, debt', section: 'africa-economy', tags: ['AfCFTA', 'trade', 'China', 'debt', 'Zambia', 'Ghana'] },
+  { title: 'African History', desc: 'Ancient empires, colonialism, slave trade, independence', section: 'africa-history', tags: ['history', 'colonialism', 'slave trade', 'Berlin Conference', 'Egypt', 'Mali', 'Zulu'] },
+  { title: 'World Economics', desc: 'GDP, inflation, capitalism, socialism, IMF, World Bank', section: 'world-economics', tags: ['GDP', 'inflation', 'capitalism', 'socialism', 'IMF', 'debt'] },
+  { title: 'Global Politics', desc: 'Democracy, authoritarianism, US, China, Russia, UN', section: 'world-politics', tags: ['democracy', 'China', 'USA', 'Russia', 'UN', 'Cold War'] },
+  { title: 'World History', desc: 'Slave trade, World Wars, Cold War, colonialism', section: 'world-history', tags: ['slave trade', 'World War', 'Cold War', 'colonialism', 'Berlin'] },
+  { title: 'Key Concepts', desc: 'Democracy, corruption, federalism, monetary policy', section: 'concepts', tags: ['democracy', 'corruption', 'federalism', 'GDP', 'inflation', 'monetary'] },
+  { title: 'Book Library', desc: 'All books referenced on this site', section: 'books', tags: ['books', 'reading', 'library'] },
+];
+
+function handleSearch(val) {
+  if (!val.trim()) { hideSearch(); return; }
+  const q = val.toLowerCase();
+  const results = searchIndex.filter(item =>
+    item.title.toLowerCase().includes(q) ||
+    item.desc.toLowerCase().includes(q) ||
+    item.tags.some(t => t.toLowerCase().includes(q))
+  );
+  showSearch(results, val);
+}
+
+function showSearch(results, q) {
+  const container = document.getElementById('search-results');
+  const inner = document.getElementById('search-results-inner');
+  container.classList.remove('hidden');
+  if (!results.length) {
+    inner.innerHTML = `<p class="text-sm text-[var(--muted-foreground)]">No results for "<strong>${q}</strong>". Try different keywords.</p>`;
+    return;
+  }
+  inner.innerHTML = `<p class="text-xs text-[var(--muted-foreground)] mb-3">Found ${results.length} result(s) for "<strong>${q}</strong>"</p>` +
+    results.map(r => `
+      <div class="flex items-center justify-between py-2 border-b border-[var(--border)] last:border-0 cursor-pointer hover:bg-[var(--accent)] rounded-lg px-2" onclick="navigate('${r.section}'); document.getElementById('search-input').value=''; hideSearch();">
+        <div>
+          <p class="font-semibold text-sm text-[var(--foreground)]">${r.title}</p>
+          <p class="text-xs text-[var(--muted-foreground)]">${r.desc}</p>
+        </div>
+        <span class="text-[var(--primary)] text-xs font-bold">→</span>
+      </div>`).join('');
+}
+
+function hideSearch() {
+  document.getElementById('search-results').classList.add('hidden');
+}
+
+// =================== GLOSSARY ===================
+const glossaryTerms = [
+  { term: 'GDP', def: 'Gross Domestic Product — total value of all goods/services a country produces in a year.' },
+  { term: 'Inflation', def: 'General rise in prices over time; your money buys less than before.' },
+  { term: 'Federalism', def: 'A system where power is shared between national and state/regional governments.' },
+  { term: 'Monetary Policy', def: 'Central bank actions (interest rates, money supply) to control inflation and growth.' },
+  { term: 'Sovereignty', def: "A country's supreme authority to govern itself without external interference." },
+  { term: 'Coup d\'état', def: 'Sudden, forceful seizure of government power, usually by the military.' },
+  { term: 'IMF', def: 'International Monetary Fund — lends money to countries in financial crisis, with conditions.' },
+  { term: 'AfCFTA', def: 'African Continental Free Trade Area — trade agreement covering all 54 African nations.' },
+  { term: 'CFA Franc', def: 'Currency used by 14 African countries, pegged to the Euro and historically backed by France.' },
+  { term: 'Dutch Disease', def: 'When a boom in one sector (oil) causes decline in other sectors by raising costs and currency.' },
+  { term: 'Gini Index', def: 'Measures inequality (0 = perfect equality, 100 = one person has everything).' },
+  { term: 'Rule of Law', def: 'Principle that everyone, including leaders, must obey the same laws.' },
+  { term: 'Diaspora', def: 'People living outside their home country. Nigerian diaspora sends $20B+/year in remittances.' },
+  { term: 'Devaluation', def: 'When a currency loses value against other currencies. Nigeria\'s naira has devalued sharply.' },
+  { term: 'Subsidy', def: 'Government payment to lower the price of goods (like fuel). Nigeria removed fuel subsidy in 2023.' },
+  { term: 'Sovereignty', def: 'A nation\'s supreme power and right to govern itself without interference.' },
+  { term: 'Pan-Africanism', def: 'Philosophy of African unity and solidarity across borders and diaspora.' },
+  { term: 'Neocolonialism', def: 'When former colonial powers maintain economic/political control through other means.' },
+  { term: 'Populism', def: 'Political approach that claims to represent "the people" against "the elite."' },
+  { term: 'Fiscal Policy', def: 'Government use of spending and taxation to influence the economy.' },
+  { term: 'Remittances', def: 'Money sent home by people working abroad. Nigeria receives ~$20B/year from its diaspora.' },
+  { term: 'Structural Adjustment', def: 'IMF/World Bank-mandated economic reforms: privatization, subsidy removal, currency devaluation.' },
+  { term: 'FAAC', def: 'Federal Account Allocation Committee — distributes oil revenue to Nigeria\'s 36 states and FCT.' },
+  { term: 'INEC', def: 'Independent National Electoral Commission — conducts Nigerian federal and state elections.' },
+];
+
+function renderGlossary() {
+  const grid = document.getElementById('glossary-grid');
+  if (grid.children.length > 0) return;
+  const sorted = [...glossaryTerms].sort((a, b) => a.term.localeCompare(b.term));
+  grid.innerHTML = sorted.map(t => `
+    <div class="border-b border-[var(--border)] pb-3">
+      <p class="font-bold text-sm text-[var(--foreground)]">${t.term}</p>
+      <p class="text-xs text-[var(--muted-foreground)] mt-0.5">${t.def}</p>
+    </div>`).join('');
+}
+
+// =================== BOOKS ===================
+const allBooks = [
+  { emoji: '📘', title: 'The Trouble with Nigeria', author: 'Chinua Achebe (1983)', desc: 'Sharp critique of Nigerian leadership failures. Short and essential.', tags: ['Nigeria', 'Politics'] },
+  { emoji: '📘', title: 'There Was a Country', author: 'Chinua Achebe (2012)', desc: 'Memoir recounting the Biafran War and its political aftermath.', tags: ['Nigeria', 'History'] },
+  { emoji: '📗', title: 'Half of a Yellow Sun', author: 'Chimamanda Ngozi Adichie (2006)', desc: 'Novel set during the Biafran War. Orange Prize winner.', tags: ['Nigeria', 'History', 'Fiction'] },
+  { emoji: '📙', title: 'My Command', author: 'Olusegun Obasanjo (1980)', desc: 'Military insider account of civil war and the road to civilian rule.', tags: ['Nigeria', 'History'] },
+  { emoji: '📕', title: 'Nigeria: Dancing on the Brink', author: 'John Campbell (2010)', desc: "A former US Ambassador's analysis of Nigeria's political fragility.", tags: ['Nigeria', 'Politics'] },
+  { emoji: '📗', title: 'Things Fall Apart', author: 'Chinua Achebe (1958)', desc: 'The most widely read African novel. Colonialism through Igbo eyes.', tags: ['Nigeria', 'History', 'Fiction'] },
+  { emoji: '📘', title: 'A History of Nigeria', author: 'Toyin Falola (2008)', desc: 'Comprehensive academic history from pre-colonial times to the present.', tags: ['Nigeria', 'History'] },
+  { emoji: '📘', title: 'Dead Aid', author: 'Dambisa Moyo (2009)', desc: 'Argues foreign aid harms Africa. Proposes market solutions.', tags: ['Africa', 'Economics'] },
+  { emoji: '📗', title: 'Why Nations Fail', author: 'Acemoglu & Robinson (2012)', desc: 'Institutions determine prosperity. Nigeria as a case study.', tags: ['Economics', 'Politics'] },
+  { emoji: '📙', title: 'The Looting Machine', author: 'Tom Burgis (2015)', desc: "How Africa's resources are extracted by elites and foreign corporations.", tags: ['Africa', 'Economics'] },
+  { emoji: '📘', title: 'Africa: A Biography of a Continent', author: 'John Reader (1997)', desc: "Best single-volume African history.", tags: ['Africa', 'History'] },
+  { emoji: '📗', title: 'How Europe Underdeveloped Africa', author: 'Walter Rodney (1972)', desc: 'Classic analysis of colonial exploitation. Required reading.', tags: ['Africa', 'History', 'Economics'] },
+  { emoji: '📙', title: 'The State of Africa', author: 'Martin Meredith (2005)', desc: 'Comprehensive history of independent Africa from 1950–2005.', tags: ['Africa', 'History'] },
+  { emoji: '📘', title: "King Leopold's Ghost", author: 'Adam Hochschild (1998)', desc: 'How Belgium killed millions in Congo for rubber profits.', tags: ['Africa', 'History'] },
+  { emoji: '📗', title: 'The Wealth of Nations', author: 'Adam Smith (1776)', desc: 'Founding text of modern economics. The "invisible hand."', tags: ['Economics', 'Classic'] },
+  { emoji: '📙', title: 'Capital in the Twenty-First Century', author: 'Thomas Piketty (2013)', desc: 'Capitalism naturally concentrates wealth. Argues for wealth tax.', tags: ['Economics'] },
+  { emoji: '📕', title: 'The Bottom Billion', author: 'Paul Collier (2007)', desc: 'Why 1 billion remain trapped in poverty. 4 traps identified.', tags: ['Economics', 'Africa'] },
+  { emoji: '📘', title: 'Sapiens', author: 'Yuval Noah Harari (2011)', desc: 'Brief history of humankind. Best starting point for anyone.', tags: ['History', 'World'] },
+  { emoji: '📗', title: 'Guns, Germs, and Steel', author: 'Jared Diamond (1997)', desc: 'Geography, not race, explains why some civilizations conquered others.', tags: ['History', 'World'] },
+  { emoji: '📙', title: 'How Democracies Die', author: 'Levitsky & Ziblatt (2018)', desc: 'Democracies can die slowly through elected leaders eroding institutions.', tags: ['Politics', 'Democracy'] },
+  { emoji: '📕', title: 'Africa\'s Business Revolution', author: 'Acha Leke et al. (2018)', desc: 'How African entrepreneurs are building billion-dollar industries.', tags: ['Africa', 'Economics'] },
+  { emoji: '📘', title: 'Freakonomics', author: 'Levitt & Dubner (2005)', desc: 'Economics applied to unexpected questions. Fun entry point.', tags: ['Economics'] },
+];
+
+let activeBookFilter = 'All';
+function renderBooks(filter) {
+  if (filter) activeBookFilter = filter;
+  const grid = document.getElementById('books-grid');
+  const books = activeBookFilter === 'All' ? allBooks : allBooks.filter(b => b.tags.includes(activeBookFilter));
+  grid.innerHTML = books.map(b => `
+    <div class="card flex gap-3">
+      <span class="text-3xl flex-shrink-0">${b.emoji}</span>
+      <div>
+        <p class="font-bold text-sm text-[var(--foreground)]">${b.title}</p>
+        <p class="text-xs text-[var(--muted-foreground)]">${b.author}</p>
+        <p class="text-xs text-[var(--muted-foreground)] mt-1">${b.desc}</p>
+        <div class="flex gap-1 mt-2 flex-wrap">${b.tags.map(t => `<span class="tag tag-blue">${t}</span>`).join('')}</div>
+      </div>
+    </div>`).join('');
+}
+
+// =================== INIT ===================
+document.addEventListener('DOMContentLoaded', function() {
+  // Add book filter buttons to books section
+  const booksSection = document.getElementById('sec-books');
+  const filterDiv = document.createElement('div');
+  filterDiv.className = 'flex flex-wrap gap-2 mb-4';
+  const filters = ['All', 'Nigeria', 'Africa', 'World', 'Economics', 'Politics', 'History'];
+  filters.forEach(f => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (f === 'All' ? ' active' : '');
+    btn.textContent = f;
+    btn.onclick = () => {
+      document.querySelectorAll('#sec-books .tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderBooks(f);
+    };
+    filterDiv.appendChild(btn);
+  });
+  booksSection.insertBefore(filterDiv, document.getElementById('books-grid'));
+
+  // Close search on click outside
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('#search-input') && !e.target.closest('#search-results')) {
+      hideSearch();
+    }
+  });
+});
+</script>
+</body>
+</html>

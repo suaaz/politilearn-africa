@@ -111,6 +111,61 @@
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ===== CSS VARIABLES — Light Mode (default) ===== */
+    :root {
+      --background: #f9fafb;
+      --foreground: #111827;
+      --card: #ffffff;
+      --border: #e5e7eb;
+      --sidebar: #f3f4f6;
+      --primary: #16a34a;
+      --primary-foreground: #ffffff;
+      --muted-foreground: #6b7280;
+      --accent: #f0fdf4;
+      --secondary: #f3f4f6;
+      --secondary-foreground: #111827;
+      --content: #ffffff;
+      --placeholder: #9ca3af;
+    }
+    /* ===== Dark Mode overrides ===== */
+    html.dark {
+      --background: #0f172a;
+      --foreground: #f1f5f9;
+      --card: #1e293b;
+      --border: #334155;
+      --sidebar: #0c1a2e;
+      --primary: #22c55e;
+      --primary-foreground: #ffffff;
+      --muted-foreground: #94a3b8;
+      --accent: #1a2e1a;
+      --secondary: #1e293b;
+      --secondary-foreground: #f1f5f9;
+      --content: #1e293b;
+      --placeholder: #64748b;
+    }
+    html { transition: background 0.25s, color 0.25s; }
+
+    /* Dark mode: ELI5 block */
+    html.dark .eli5-block { background: #422006; border-color: #ca8a04; color: #fef3c7; }
+    html.dark #search-input { background: #1e293b; color: #f1f5f9; }
+
+    /* Dark mode toggle button */
+    #dark-toggle { background: none; border: 1.5px solid var(--border); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 1rem; transition: background 0.2s; color: var(--foreground); }
+    #dark-toggle:hover { background: var(--accent); }
+
+    /* ===== QUIZ STYLES ===== */
+    .quiz-option { display: block; width: 100%; text-align: left; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; background: var(--card); color: var(--foreground); cursor: pointer; font-size: 0.85rem; transition: all 0.18s; margin-bottom: 6px; }
+    .quiz-option:hover:not(:disabled) { border-color: var(--primary); background: var(--accent); }
+    .quiz-option.correct   { background: #bbf7d0; border-color: #16a34a; color: #14532d; font-weight: 700; }
+    .quiz-option.incorrect { background: #fecaca; border-color: #dc2626; color: #7f1d1d; }
+    .quiz-option:disabled  { cursor: default; }
+    .quiz-progress { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .quiz-progress-fill { height: 100%; background: var(--primary); border-radius: 3px; transition: width 0.4s ease; }
+
+    /* Figure card richer */
+    .figure-bio { font-size: 0.78rem; color: var(--muted-foreground); line-height: 1.6; }
+    .figure-stat { display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
   </style>
 </head>
 <body>
@@ -152,6 +207,12 @@
     <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--accent)]" onclick="navigate('concepts')">💡 Key Concepts</button>
     <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--accent)]" onclick="navigate('glossary')">📖 Glossary</button>
     <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg hover:bg-[var(--accent)]" onclick="navigate('books')">📚 Book Library</button>
+    <button class="nav-link sidebar-text w-full text-left px-3 py-2 rounded-lg" style="background:#7c3aed;color:white;margin-top:8px;font-weight:700;" onclick="navigate('quiz')">🧠 Test Yourself — Quiz</button>
+
+    <!-- Dark mode toggle in sidebar -->
+    <button onclick="toggleDarkMode()" style="width:100%;margin-top:12px;padding:8px 12px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:white;font-size:0.82rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;" id="sidebar-dark-btn">
+      <span id="sidebar-dark-icon">🌙</span><span id="sidebar-dark-label">Dark Mode</span>
+    </button>
   </nav>
 </aside>
 
@@ -174,7 +235,10 @@
       <button onclick="navigate('nigeria-politics')" class="tab-btn text-sm">Nigeria</button>
       <button onclick="navigate('africa-politics')" class="tab-btn text-sm">Africa</button>
       <button onclick="navigate('world-economics')" class="tab-btn text-sm">World</button>
+      <button onclick="navigate('quiz')" class="tab-btn text-sm" style="background:#7c3aed;color:white;border-color:#7c3aed;">🧠 Quiz</button>
     </div>
+    <!-- Dark Mode Toggle -->
+    <button id="dark-toggle" onclick="toggleDarkMode()" title="Toggle dark/light mode">🌙</button>
     <!-- ELI5 Toggle -->
     <label class="flex items-center gap-2 cursor-pointer">
       <span class="text-xs font-semibold text-[var(--muted-foreground)] hide-mobile">🧒 ELI5</span>
@@ -622,6 +686,18 @@
         </div>
       </div>
     </div>
+
+    <!-- Key Concepts for this topic -->
+    <div class="card mt-4">
+      <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">💡</span>
+          <h3 class="font-bold text-[var(--foreground)]">Key Concepts for Nigerian Economy</h3>
+        </div>
+        <button onclick="navigate('concepts')" style="background:#16a34a;color:white;border:none;border-radius:8px;padding:6px 14px;font-size:0.78rem;font-weight:700;cursor:pointer;">See All 50 Concepts →</button>
+      </div>
+      <div id="ng-economy-concepts-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+    </div>
   </section>
 
   <!-- =================== NIGERIA HISTORY =================== -->
@@ -899,6 +975,23 @@
         </div>
       </div>
     </div>
+
+    <!-- More Historical Figures — rendered by JS -->
+    <div class="card mt-4">
+      <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">👤</span>
+          <h3 class="font-bold text-[var(--foreground)]">More Historical Figures</h3>
+        </div>
+        <div class="flex gap-2 flex-wrap" id="figure-filter-btns">
+          <button class="tab-btn active" onclick="filterFigures('all',this)" style="font-size:0.75rem;">All</button>
+          <button class="tab-btn" onclick="filterFigures('nigeria',this)" style="font-size:0.75rem;">🇳🇬 Nigeria</button>
+          <button class="tab-btn" onclick="filterFigures('africa',this)" style="font-size:0.75rem;">🌍 Africa</button>
+          <button class="tab-btn" onclick="filterFigures('world',this)" style="font-size:0.75rem;">🌐 World</button>
+        </div>
+      </div>
+      <div id="extra-figures-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </div>
   </section>
 
   <!-- =================== AFRICA POLITICS =================== -->
@@ -1031,6 +1124,18 @@
         <div class="book-ref"><span class="text-2xl">📗</span><div><p class="font-bold text-sm text-[var(--foreground)]">How Europe Underdeveloped Africa — Walter Rodney (1972)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">Classic analysis of how colonialism systematically extracted wealth from Africa. Still the definitive text on this argument. Required reading for anyone serious about African political economy.</p><span class="tag tag-red mt-1 inline-block">Classic</span></div></div>
         <div class="book-ref"><span class="text-2xl">📙</span><div><p class="font-bold text-sm text-[var(--foreground)]">The State of Africa — Martin Meredith (2005)</p><p class="text-xs text-[var(--muted-foreground)] mt-1">A comprehensive history of independent Africa from 1950 to 2005. Balanced, readable, and sobering. Covers every major crisis, war, and political drama.</p></div></div>
       </div>
+    </div>
+
+    <!-- Key Concepts for this topic -->
+    <div class="card mt-4">
+      <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">💡</span>
+          <h3 class="font-bold text-[var(--foreground)]">Key Concepts for African Politics</h3>
+        </div>
+        <button onclick="navigate('concepts')" style="background:#16a34a;color:white;border:none;border-radius:8px;padding:6px 14px;font-size:0.78rem;font-weight:700;cursor:pointer;">See All 50 Concepts →</button>
+      </div>
+      <div id="africa-politics-concepts-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
     </div>
   </section>
 
@@ -1420,6 +1525,62 @@
     <div id="books-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
   </section>
 
+  <!-- =================== QUIZ =================== -->
+  <section id="sec-quiz" class="section">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="text-3xl">🧠</span>
+      <div>
+        <h2 class="text-2xl font-bold text-[var(--foreground)]">Test Yourself</h2>
+        <p class="text-[var(--muted-foreground)] text-sm">25 questions across Nigeria, Africa & World — politics, history, economics</p>
+      </div>
+    </div>
+
+    <!-- Category filter -->
+    <div class="flex flex-wrap gap-2 mb-4" id="quiz-cat-filters">
+      <button class="tab-btn active" onclick="startQuiz('all',this)">All (25)</button>
+      <button class="tab-btn" onclick="startQuiz('nigeria',this)">🇳🇬 Nigeria</button>
+      <button class="tab-btn" onclick="startQuiz('africa',this)">🌍 Africa</button>
+      <button class="tab-btn" onclick="startQuiz('economics',this)">💹 Economics</button>
+      <button class="tab-btn" onclick="startQuiz('world',this)">🌐 World</button>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="quiz-progress mb-4" id="quiz-progress-wrap" style="display:none;">
+      <div class="quiz-progress-fill" id="quiz-progress-fill" style="width:0%"></div>
+    </div>
+    <div class="flex items-center justify-between mb-3 text-sm text-[var(--muted-foreground)]" id="quiz-meta" style="display:none;">
+      <span id="quiz-q-counter">Question 1 of 25</span>
+      <span id="quiz-score-live">Score: 0</span>
+    </div>
+
+    <!-- Question card -->
+    <div class="card" id="quiz-card" style="display:none;">
+      <p class="text-xs font-bold text-[var(--primary)] mb-2" id="quiz-category-label">Category</p>
+      <p class="font-bold text-[var(--foreground)] mb-4" style="font-size:1rem;" id="quiz-question">Question text</p>
+      <div id="quiz-options"></div>
+      <div id="quiz-explanation" class="context-block mt-3" style="display:none;font-size:0.82rem;"></div>
+      <button id="quiz-next-btn" onclick="quizNext()" style="display:none;margin-top:14px;background:#16a34a;color:white;border:none;border-radius:8px;padding:9px 20px;font-weight:700;cursor:pointer;font-size:0.85rem;">Next Question →</button>
+    </div>
+
+    <!-- Start screen -->
+    <div class="card text-center" id="quiz-start-screen">
+      <p class="text-4xl mb-3">🧠</p>
+      <h3 class="font-bold text-xl text-[var(--foreground)] mb-2">Ready to test your knowledge?</h3>
+      <p class="text-[var(--muted-foreground)] text-sm mb-4">Select a category above and start the quiz. Instant feedback on every answer with full explanations.</p>
+      <button onclick="startQuiz('all', document.querySelector('#quiz-cat-filters .tab-btn'))" style="background:#7c3aed;color:white;border:none;border-radius:10px;padding:12px 28px;font-size:1rem;font-weight:700;cursor:pointer;">🚀 Start Full Quiz (25 Qs)</button>
+    </div>
+
+    <!-- Results screen -->
+    <div class="card text-center" id="quiz-results" style="display:none;">
+      <p class="text-4xl mb-2" id="quiz-result-emoji">🏆</p>
+      <h3 class="font-bold text-2xl text-[var(--foreground)] mb-1" id="quiz-result-title">Excellent!</h3>
+      <p class="text-[var(--muted-foreground)] mb-4" id="quiz-result-desc">You answered X/Y correctly.</p>
+      <div id="quiz-result-breakdown" class="text-left mb-4 space-y-2"></div>
+      <button onclick="startQuiz(currentQuizCategory, null)" style="background:#7c3aed;color:white;border:none;border-radius:8px;padding:10px 24px;font-weight:700;cursor:pointer;margin-right:8px;">🔄 Retry Same Category</button>
+      <button onclick="startQuiz('all',null)" style="background:#16a34a;color:white;border:none;border-radius:8px;padding:10px 24px;font-weight:700;cursor:pointer;">🎯 Full Quiz</button>
+    </div>
+  </section>
+
 </main>
 
 <!-- FOOTER -->
@@ -1462,6 +1623,7 @@ const sectionMap = {
   'concepts': 'concepts',
   'glossary': 'glossary',
   'books': 'books',
+  'quiz': 'quiz',
 };
 
 function navigate(key) {
@@ -1476,6 +1638,10 @@ function navigate(key) {
   if (key === 'books') renderBooks();
   if (key === 'concepts') renderConcepts();
   if (key === 'nigeria-politics') renderNigeriaPoliticsConcepts();
+  if (key === 'nigeria-economy') renderSectionConcepts('ng-economy-concepts-grid', ['GDP (Gross Domestic Product)','Inflation','Monetary Policy','Fiscal Policy','Exchange Rates','National Debt','Resource Curse (Dutch Disease)','Structural Adjustment Programs (SAPs)','Sovereign Wealth Funds','Trade: Imports & Exports','Supply & Demand','Environmental Economics']);
+  if (key === 'africa-politics') renderSectionConcepts('africa-politics-concepts-grid', ['Democracy (Full)','Federalism','Geopolitics','Pan-Africanism','Colonialism & Neocolonialism','Failed States','Soft Power vs Hard Power','Populism','Rule of Law','Developmental State Theory','State Capture','Civil Society']);
+  if (key === 'nigeria-figures') renderExtraFigures('all');
+  if (key === 'quiz') initQuizSection();
 }
 
 // Render relevant key concepts inline inside the Nigeria Politics section
@@ -2151,6 +2317,266 @@ function filterConcepts(level, btn) {
   document.querySelectorAll('#concept-filters .tab-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   renderConcepts(level);
+}
+
+// =================== GENERIC SECTION CONCEPTS RENDERER ===================
+function renderSectionConcepts(gridId, titles) {
+  const grid = document.getElementById(gridId);
+  if (!grid || grid.children.length > 0) return;
+  const lc = { starter:'#16a34a', foundation:'#2563eb', intermediate:'#ca8a04', advanced:'#ea580c', expert:'#dc2626' };
+  const lb = { starter:'#bbf7d0', foundation:'#bfdbfe', intermediate:'#fef9c3', advanced:'#fed7aa', expert:'#fecaca' };
+  const ld = { starter:'#14532d', foundation:'#1e3a8a', intermediate:'#713f12', advanced:'#7c2d12', expert:'#7f1d1d' };
+  const items = titles.map(t => conceptsData.find(c => c.title === t)).filter(Boolean);
+  grid.innerHTML = items.map((c, i) => {
+    const color = lc[c.level], bg = lb[c.level], dark = ld[c.level];
+    const uid = gridId + '-' + i;
+    return `<div style="border:1px solid var(--border);border-left:4px solid ${color};border-radius:10px;padding:1rem;background:var(--card);">
+      <div class="flex items-center gap-2 mb-1 flex-wrap">
+        <span style="font-size:1.2rem;">${c.emoji}</span>
+        <span style="font-weight:700;font-size:0.88rem;color:var(--foreground);">${c.title}</span>
+        <span style="font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:999px;background:${bg};color:${dark};">${c.level.charAt(0).toUpperCase()+c.level.slice(1)}</span>
+      </div>
+      <p style="font-size:0.76rem;color:var(--muted-foreground);margin-bottom:7px;">${c.short}</p>
+      <div class="eli5-block" style="font-size:0.74rem;padding:0.5rem 0.75rem;margin-bottom:7px;"><span style="font-weight:700;">🧒 </span>${c.eli5}</div>
+      <div style="font-size:0.74rem;background:var(--accent);border-left:3px solid ${color};border-radius:6px;padding:0.5rem 0.75rem;margin-bottom:7px;">
+        <span style="font-weight:700;color:var(--foreground);">🇳🇬 </span><span style="color:var(--muted-foreground);">${c.nigeria}</span>
+      </div>
+      <button onclick="toggleConceptDeepDive('${uid}')" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:${color};color:white;border:none;border-radius:6px;padding:5px 11px;font-size:0.73rem;font-weight:700;cursor:pointer;">
+        <span>📖 Deep Dive</span><span id="${uid}-chevron">▼</span>
+      </button>
+      <div id="${uid}" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease;">
+        <div style="font-size:0.74rem;padding:0.6rem 0.8rem;border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;color:var(--muted-foreground);">
+          <p style="font-weight:700;color:var(--foreground);margin-bottom:4px;">🌍 ${c.world}</p>
+          ${c.deepdive}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// =================== DARK MODE ===================
+function toggleDarkMode() {
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('politilearn-dark', isDark ? '1' : '0');
+  const btn = document.getElementById('dark-toggle');
+  const sbIcon = document.getElementById('sidebar-dark-icon');
+  const sbLabel = document.getElementById('sidebar-dark-label');
+  if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+  if (sbIcon) sbIcon.textContent = isDark ? '☀️' : '🌙';
+  if (sbLabel) sbLabel.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+}
+// Load saved preference on startup
+(function() {
+  if (localStorage.getItem('politilearn-dark') === '1') {
+    document.documentElement.classList.add('dark');
+    const btn = document.getElementById('dark-toggle');
+    const sbIcon = document.getElementById('sidebar-dark-icon');
+    const sbLabel = document.getElementById('sidebar-dark-label');
+    if (btn) btn.textContent = '☀️';
+    if (sbIcon) sbIcon.textContent = '☀️';
+    if (sbLabel) sbLabel.textContent = 'Light Mode';
+  }
+})();
+
+// =================== EXTRA HISTORICAL FIGURES ===================
+const extraFigures = [
+  // Nigeria
+  { region:'nigeria', emoji:'⚔️', name:'Yakubu Gowon', years:'1934–', tags:['General','Head of State','Unifier'],
+    bio:'Led Nigeria through the Civil War (1967–1970) and famously declared "No victor, no vanquished" after Biafra\'s defeat — one of post-war Africa\'s most humane reconciliation statements. He was deposed in 1975 while abroad. Known for launching the NYSC in 1973.',
+    legacy:'The "no victor, no vanquished" policy prevented post-war retribution and allowed Igbo reintegration. Rwanda failed to do this after the genocide — and saw decades of division. Nigeria largely succeeded.', eli5:'After a terrible school fight, the class captain said "No one wins, everyone forgives and we move on together." That\'s Gowon after the Civil War.' },
+  { region:'nigeria', emoji:'⚡', name:'Murtala Muhammed', years:'1938–1976', tags:['Revolutionary','Reformer','Martyr'],
+    bio:'Head of State for only 200 days (1975–1976) but left a lasting mark. Sacked thousands of corrupt civil servants in months. Moved the capital project to Abuja. Took a strong anti-apartheid, anti-colonial stance at the OAU. Assassinated in a failed coup in February 1976.',
+    legacy:'Murtala showed what decisive, uncorrupt leadership could look like. His brief tenure is often cited as Nigeria\'s "what could have been" moment. Lagos Airport is named after him.', eli5:'Imagine a new principal who, in 6 months, fired all the lazy teachers, expelled corrupt prefects, and started building a new school. Then bad people killed him. Everyone still talks about what might have been.' },
+  { region:'nigeria', emoji:'📚', name:'Wole Soyinka', years:'1934–', tags:['Nobel Laureate','Writer','Activist'],
+    bio:'First African to win the Nobel Prize in Literature (1986). Playwright, poet, novelist. Imprisoned for 2 years during the Civil War. Fled Nigeria twice under military rule. His work blends Yoruba mythology with modern political critique. "The Man Died" is his prison memoir.',
+    legacy:'Soyinka gave African literature its Nobel recognition and proved that African voices belong in the world\'s highest literary conversations. His political activism — opposing Abacha, endorsing Obi in 2023 — shows art and politics are inseparable.', eli5:'Imagine winning the world\'s most important book prize, but you were also brave enough to go to prison standing up for what\'s right. That\'s Wole Soyinka — Nigeria\'s greatest writer AND freedom fighter.' },
+  { region:'nigeria', emoji:'💰', name:'Aliko Dangote', years:'1957–', tags:['Business','Billionaire','Industrialist'],
+    bio:'Africa\'s richest person (net worth ~$14B). Built a cement empire, then expanded to sugar, flour, salt, and the $20B Dangote Refinery in Lagos — Africa\'s largest single-train refinery. Started as a trader with a loan from his uncle. Now employs 30,000+ people.',
+    legacy:'Dangote proves that African industrial ambition is possible despite infrastructure deficits and policy instability. His refinery, when fully operational, should end Nigeria\'s absurd situation of exporting crude oil while importing refined petrol.', eli5:'Imagine a Nigerian classmate who started selling biscuits at school, then bought the canteen, then built a whole food factory. That\'s Dangote — started small, built Africa\'s biggest business.' },
+  // Africa
+  { region:'africa', emoji:'🌹', name:'Julius Nyerere', years:'1922–1999', tags:['Pan-Africanist','Socialist','Philosopher-King'],
+    bio:'First President of Tanzania (1964–1985). Promoted "Ujamaa" (African socialism/familyhood) — collective farming villages. Abolished tribalism, built a genuinely national identity. Gave up power voluntarily in 1985. Deeply respected across Africa for his moral integrity.',
+    legacy:'Tanzania has the strongest national identity in Africa — Kiswahili unites everyone above ethnicity. This is Nyerere\'s greatest achievement. His economic policies failed (Ujamaa caused food shortages), but his political nation-building succeeded brilliantly.', eli5:'Imagine a school principal who said "we are all one family, no tribe or group is better." He made everyone speak the same language and feel like brothers. His economic ideas didn\'t work well, but the "one school family" idea worked brilliantly.' },
+  { region:'africa', emoji:'👑', name:'Haile Selassie', years:'1892–1975', tags:['Emperor','Pan-Africanist','Rastafari Icon'],
+    bio:'Emperor of Ethiopia (1930–1974). Kept Ethiopia independent during European colonialism (except brief Italian occupation 1936–41). Co-founded the Organisation of African Unity (OAU) in 1963 in Addis Ababa. Worshipped as a deity by Rastafari followers worldwide. Overthrown and likely murdered by the Derg military junta.',
+    legacy:'Addis Ababa hosts the African Union because of Selassie — his vision of African political unity created the OAU. Ethiopia\'s uncolonised status is a source of African pride. But his feudal system kept millions in poverty — his legacy is deeply contested.', eli5:'An emperor so powerful that people in faraway Jamaica thought he was God! He helped create the African Union — the club of all African countries. But at home he let his people go hungry while he lived like royalty.' },
+  { region:'africa', emoji:'⚖️', name:'Ellen Johnson Sirleaf', years:'1938–', tags:['First Female President','Nobel Peace Prize','Liberia'],
+    bio:'Africa\'s first elected female head of state (Liberia, 2006–2018). Won Nobel Peace Prize (2011) jointly with Leymah Gbowee for women\'s safety and peace in Liberia. Rebuilt Liberia after 14 years of devastating civil war that killed 250,000. Harvard-trained economist.',
+    legacy:'Sirleaf showed Africa that women can lead post-conflict reconstruction — and do it well. Liberia was in ruins when she took over. She rebuilt institutions, restored electricity, and got Liberia\'s debt cancelled. Transferred power peacefully in 2018.', eli5:'After a horrible long fight destroyed the whole school, a woman stepped up to be principal and rebuilt it from scratch. Not just the building — she rebuilt the trust, the rules, and the hope. That\'s Ellen Johnson Sirleaf.' },
+  { region:'africa', emoji:'🌿', name:'Wangari Maathai', years:'1940–2011', tags:['Nobel Peace Prize','Environmentalist','Kenya'],
+    bio:'First African woman to win the Nobel Peace Prize (2004). Founded the Green Belt Movement — planting 51 million trees across Kenya. Connected environmental conservation with women\'s empowerment and democracy. Fought Moi\'s authoritarian regime. Her book "Unbowed" is essential reading.',
+    legacy:'Maathai proved environmental activism and political activism are one and the same — you cannot have democracy without a healthy environment, and you cannot protect the environment without democracy. Her tree-planting movement employed thousands of rural women.', eli5:'She looked at Kenya\'s bare hillsides and said "Let\'s plant trees." Then she got thousands of women to plant 51 million trees, AND fought the corrupt government at the same time. She won the world\'s biggest peace prize for it.' },
+  // World
+  { region:'world', emoji:'🕊️', name:'Mahatma Gandhi', years:'1869–1948', tags:['Independence','Non-Violence','India'],
+    bio:'Led India\'s independence movement against British colonialism through non-violent civil disobedience (Satyagraha). Salt March (1930), Quit India Movement (1942). Assassinated in 1948. His methods directly inspired Martin Luther King Jr. and Nelson Mandela.',
+    legacy:'Gandhi proved that nonviolent resistance can defeat military empires. His philosophy influenced every major civil rights and independence movement of the 20th century — from America\'s Civil Rights to South Africa\'s anti-apartheid struggle to Nigeria\'s #EndSARS.', eli5:'The most powerful army in the world was running India, and one man said "We won\'t fight with guns — we\'ll refuse to cooperate." Millions followed him. The British gave up and left. No war needed.' },
+  { region:'world', emoji:'✊', name:'Martin Luther King Jr.', years:'1929–1968', tags:['Civil Rights','USA','Non-Violence'],
+    bio:'Led the American Civil Rights Movement through non-violent protest, inspired by Gandhi. "I Have a Dream" speech (1963) is one of history\'s greatest orations. Won Nobel Peace Prize (1964). Assassinated in Memphis, 1968. Led Montgomery Bus Boycott, March on Washington, and Selma voting rights marches.',
+    legacy:'MLK changed America\'s legal framework (Civil Rights Act 1964, Voting Rights Act 1965) within a decade through peaceful protest. He showed that moral authority and organised nonviolence can reshape law and society. His methods remain the template for peaceful protest worldwide.', eli5:'Black Americans weren\'t allowed to sit on certain bus seats, vote, or use certain restaurants. MLK organised peaceful marches and speeches so powerful that the whole country had to change its laws. He was killed for it but his work lived on.' },
+  { region:'world', emoji:'🔬', name:'Patrice Lumumba', years:'1925–1961', tags:['Congo','Pan-Africanist','Martyr'],
+    bio:'First Prime Minister of independent Congo (1960). Fierce pan-Africanist who refused to compromise Congo\'s sovereignty over its vast mineral wealth. Deposed within months by a CIA/Belgian-backed coup. Executed in January 1961 — aged 35. His murder remains one of the Cold War\'s most consequential crimes.',
+    legacy:'Congo\'s 60-year political catastrophe traces directly to Lumumba\'s murder — Western powers installed Mobutu (who renamed it Zaïre) and looted it for 32 years. If Lumumba had been allowed to govern, the Congo — the world\'s most mineral-rich country — might be Africa\'s powerhouse today.', eli5:'The day Congo became free, its leader said "We will keep our own diamonds and minerals for our own people." The USA and Belgium didn\'t like that. They had him killed in 35 days. Congo never fully recovered.' },
+  { region:'world', emoji:'🌐', name:'Franklin D. Roosevelt', years:'1882–1945', tags:['USA','New Deal','WWII'],
+    bio:'32nd US President (1933–1945). Faced the Great Depression with the New Deal — massive government programs to create jobs and save the economy. Led USA through most of World War II. Created the Social Security system. Only US president elected 4 times. Co-designed the United Nations.',
+    legacy:'The New Deal proved that government spending can save economies in crisis — the basis of modern Keynesian economics. FDR\'s legacy is the template for every government stimulus package since (including COVID stimulus). His model contrasts with the austerity approach that has repeatedly failed.', eli5:'When America\'s economy completely collapsed (everyone was hungry and jobless), the president said "Government must fix this" — he paid people to build roads, schools, and dams until the economy recovered. It worked. Every country copied this idea later.' },
+];
+
+let currentFigureFilter = 'all';
+
+function renderExtraFigures(filter) {
+  if (filter) currentFigureFilter = filter;
+  const grid = document.getElementById('extra-figures-grid');
+  if (!grid) return;
+  const items = currentFigureFilter === 'all' ? extraFigures : extraFigures.filter(f => f.region === currentFigureFilter);
+  const regionColor = { nigeria:'#16a34a', africa:'#2563eb', world:'#7c3aed' };
+  grid.innerHTML = items.map((f, i) => {
+    const color = regionColor[f.region] || '#16a34a';
+    const uid = 'fig-extra-' + i;
+    return `<div class="card" style="border-top:4px solid ${color};">
+      <div class="flex items-start gap-3 mb-3">
+        <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,${color}22,${color}55);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;border:2px solid ${color};">${f.emoji}</div>
+        <div class="flex-1">
+          <h4 class="font-bold text-[var(--foreground)]">${f.name}</h4>
+          <p class="text-xs text-[var(--muted-foreground)] mb-1">${f.years}</p>
+          <div class="flex flex-wrap gap-1">${f.tags.map(t => `<span class="tag" style="background:${color}22;color:${color};font-size:0.65rem;">${t}</span>`).join('')}</div>
+        </div>
+      </div>
+      <p class="figure-bio mb-2">${f.bio}</p>
+      <div class="eli5-block text-xs mb-2"><span style="font-weight:700;">🧒 ELI5: </span>${f.eli5}</div>
+      <button onclick="toggleConceptDeepDive('${uid}')" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:${color};color:white;border:none;border-radius:6px;padding:6px 12px;font-size:0.74rem;font-weight:700;cursor:pointer;">
+        <span>🏛️ Legacy & Impact</span><span id="${uid}-chevron">▼</span>
+      </button>
+      <div id="${uid}" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease;">
+        <div style="font-size:0.78rem;padding:0.75rem;border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;color:var(--muted-foreground);">${f.legacy}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterFigures(region, btn) {
+  document.querySelectorAll('#figure-filter-btns .tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderExtraFigures(region);
+}
+
+// =================== QUIZ ENGINE ===================
+const quizData = [
+  // Nigeria
+  { cat:'nigeria', q:'What does INEC stand for?', opts:['National Electoral Commission','Independent National Electoral Commission','Federal Electoral Commission','Nigerian Election Management Board'], ans:1, exp:'INEC (Independent National Electoral Commission) conducts all federal and state elections in Nigeria. It introduced the BVAS biometric verification system in 2023 to reduce fraud.' },
+  { cat:'nigeria', q:'How many states does Nigeria have?', opts:['32','34','36','38'], ans:2, exp:'Nigeria has 36 states plus the Federal Capital Territory (FCT), Abuja. The most recent state created was Bayelsa in 1996.' },
+  { cat:'nigeria', q:'What unique electoral requirement does Nigeria\'s presidential election have?', opts:['Absolute majority of all votes','More than 50% of all votes','25% in at least 24 of 36 states','Win all 6 geopolitical zones'], ans:2, exp:'Section 134 of the 1999 Constitution requires a presidential winner to get the highest votes AND at least 25% of votes in 24 states — designed to ensure broad national support across regions.' },
+  { cat:'nigeria', q:'When did Nigeria gain independence?', opts:['October 1, 1957','October 1, 1960','October 1, 1963','January 1, 1960'], ans:1, exp:'Nigeria gained independence from Britain on October 1, 1960. October 1 is still celebrated as Independence Day. Nigeria became a republic on October 1, 1963.' },
+  { cat:'nigeria', q:'The Biafran Civil War lasted from:', opts:['1965–1968','1966–1969','1967–1970','1968–1971'], ans:2, exp:'The Nigerian Civil War ran from July 6, 1967 to January 15, 1970. The war killed an estimated 1–3 million people, many from famine in Biafra. Gowon declared "No victor, no vanquished."' },
+  { cat:'nigeria', q:'Nigeria removed its fuel subsidy in which year?', opts:['2019','2021','2022','2023'], ans:3, exp:'President Tinubu removed the fuel subsidy in May 2023, on his first day in office. The subsidy had cost Nigeria billions annually and was widely seen as benefiting fuel importers more than ordinary citizens.' },
+  { cat:'nigeria', q:'Which Nigerian city is Africa\'s largest economy contributor?', opts:['Abuja','Kano','Lagos','Port Harcourt'], ans:2, exp:'Lagos generates an estimated 25–30% of Nigeria\'s GDP and, if it were a country, would rank among Africa\'s top 10 economies. It has roughly 22 million people.' },
+  { cat:'nigeria', q:'Nigeria was amalgamated (North and South joined) in which year?', opts:['1906','1910','1914','1920'], ans:2, exp:'Lord Frederick Lugard amalgamated the Northern and Southern Protectorates of Nigeria in 1914 — a decision that created a country of extraordinary ethnic, religious, and cultural diversity.' },
+  // Africa
+  { cat:'africa', q:'The Berlin Conference (Scramble for Africa) took place in:', opts:['1878','1884–1885','1890–1891','1900–1901'], ans:1, exp:'The Berlin Conference (1884–85) divided Africa among European powers. No African leader was invited. 14 European nations drew borders that cut across ethnic groups and kingdoms — boundaries Africa still lives with today.' },
+  { cat:'africa', q:'Kwame Nkrumah was the first leader of which country?', opts:['Nigeria','Kenya','Ghana','Tanzania'], ans:2, exp:'Kwame Nkrumah led Ghana to independence in 1957 — the first sub-Saharan African country to gain independence. He tried to build a "United States of Africa" but was overthrown in 1966 while on a trip to Hanoi.' },
+  { cat:'africa', q:'Thomas Sankara was the President of:', opts:['Mali','Niger','Senegal','Burkina Faso'], ans:3, exp:'Thomas Sankara led Burkina Faso from 1983 to 1987, renamed it from Upper Volta, expelled foreign NGOs, promoted women\'s rights, and preached radical self-reliance. He was assassinated in 1987, allegedly with French involvement.' },
+  { cat:'africa', q:'Nelson Mandela was imprisoned for how many years?', opts:['18 years','22 years','27 years','35 years'], ans:2, exp:'Mandela was imprisoned from 1964 to 1990 — 27 years. He was held mostly on Robben Island. Rather than emerge bitter, he led South Africa\'s peaceful transition from apartheid to democracy.' },
+  { cat:'africa', q:'The African Union was established (as AU, successor to OAU) in:', opts:['1993','1999','2002','2005'], ans:2, exp:'The African Union was launched in 2002 in Durban, South Africa, replacing the Organisation of African Unity (OAU) which was founded in 1963. The AU has 55 member states.' },
+  { cat:'africa', q:'Which African country has the world\'s largest Sovereign Wealth Fund per capita?', opts:['Nigeria','South Africa','Botswana','Norway (African investor)'], ans:2, exp:'Botswana\'s Pula Fund, built from diamond revenues, gives it one of Africa\'s highest per-capita savings rates. Norway is the global leader overall. Nigeria\'s NSIA fund is embarrassingly small by comparison.' },
+  // Economics
+  { cat:'economics', q:'What does GDP stand for?', opts:['General Development Plan','Gross Domestic Product','Government Domestic Policy','Global Development Percentage'], ans:1, exp:'GDP (Gross Domestic Product) is the total monetary value of all goods and services produced within a country in one year. Nigeria\'s GDP is approximately $477 billion (2023) — Africa\'s largest.' },
+  { cat:'economics', q:'Inflation of around 2% per year is generally considered by central banks as:', opts:['Dangerous hyperinflation','Concerning and must be fought','Healthy and normal','The start of deflation'], ans:2, exp:'Most central banks (US Fed, ECB, Bank of England) target 2% inflation as "healthy" — enough to encourage spending and investment but not enough to erode purchasing power significantly. Nigeria\'s ~28% (2024) is far above this.' },
+  { cat:'economics', q:'The "Resource Curse" or "Dutch Disease" refers to:', opts:['Wars fought over natural resources','Environmental damage from mining','How oil/mineral wealth often leads to worse economic outcomes','Disease spread through oil pollution'], ans:2, exp:'Countries rich in natural resources often develop worse economies than resource-poor nations. Oil money: (1) appreciates currency (killing other exports), (2) reduces state accountability (no tax = no representation), (3) enables corruption. Nigeria is the textbook case.' },
+  { cat:'economics', q:'Norway\'s Sovereign Wealth Fund is worth approximately:', opts:['$500 billion','$1 trillion','$1.7 trillion','$3 trillion'], ans:2, exp:'Norway\'s Government Pension Fund Global is worth approximately $1.7 trillion — the world\'s largest. It owns about 1.5% of ALL publicly listed companies worldwide, funded entirely from oil revenues since 1990.' },
+  { cat:'economics', q:'A country\'s "debt-to-GDP ratio" measures:', opts:['How much of GDP comes from debt repayments','Total debt compared to the size of the economy','How fast debt is growing','The interest rate on government bonds'], ans:1, exp:'The debt-to-GDP ratio compares total government debt to economic output. Nigeria\'s ratio (~38%) seems moderate, but its debt-service-to-revenue ratio (>90%) is catastrophic — meaning almost all government income goes to debt interest payments.' },
+  { cat:'economics', q:'Which of these is an example of "Fiscal Policy"?', opts:['Central bank raising interest rates','Government building roads to stimulate the economy','Currency devaluation','Adjusting bank reserve requirements'], ans:1, exp:'Fiscal policy = government use of taxation and spending (controlled by Finance Ministry). Monetary policy = central bank control of interest rates and money supply (CBN in Nigeria). Road construction is government spending = fiscal policy.' },
+  // World
+  { cat:'world', q:'The UN was founded after which event?', opts:['World War I','World War II','The Korean War','The Cold War'], ans:1, exp:'The United Nations was founded in 1945 after WWII, replacing the failed League of Nations. It currently has 193 member states. The UN Security Council\'s 5 permanent members (P5) are USA, UK, France, Russia, and China — all WWII victors.' },
+  { cat:'world', q:'MKO Abiola won which election before the results were annulled?', opts:['June 12, 1990','June 12, 1993','June 12, 1995','June 12, 1998'], ans:1, exp:'Moshood Abiola won Nigeria\'s June 12, 1993 presidential election — widely regarded as Nigeria\'s freest and fairest. Military ruler Babangida annulled the results. Abiola died in detention in 1998. June 12 is now Democracy Day.' },
+  { cat:'world', q:'Which country has the world\'s largest economy?', opts:['China','Japan','USA','Germany'], ans:2, exp:'The USA has the world\'s largest GDP (~$27 trillion in 2024). China is #2 (~$18 trillion). The USA has held the top position since overtaking the UK in the late 19th century and may be overtaken by China in the 2030s.' },
+  { cat:'world', q:'The Cold War was primarily a rivalry between:', opts:['USA and China','USA and USSR','UK and Germany','NATO and the UN'], ans:1, exp:'The Cold War (1947–1991) was an ideological, economic, and proxy military conflict between the USA (capitalism/democracy) and USSR (communism). Africa was a major battleground — both sides backed different African leaders, fuelling many post-independence conflicts.' },
+  { cat:'world', q:'Which philosopher wrote "The Social Contract" (1762)?', opts:['Thomas Hobbes','John Locke','Jean-Jacques Rousseau','Immanuel Kant'], ans:2, exp:'Rousseau\'s "The Social Contract" (1762) argued that government legitimacy comes from the "general will" of the people. It influenced the French Revolution. Hobbes wrote "Leviathan" (1651), Locke wrote "Second Treatise" (1689).' },
+];
+
+let currentQuizCategory = 'all';
+let quizQuestions = [];
+let quizIndex = 0;
+let quizScore = 0;
+let quizAnswered = [];
+
+function initQuizSection() {
+  // just show start screen — don't auto-start
+}
+
+function startQuiz(cat, btn) {
+  if (btn) {
+    document.querySelectorAll('#quiz-cat-filters .tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  currentQuizCategory = cat;
+  quizQuestions = cat === 'all' ? [...quizData] : quizData.filter(q => q.cat === cat);
+  // Shuffle
+  quizQuestions = quizQuestions.sort(() => Math.random() - 0.5);
+  quizIndex = 0; quizScore = 0; quizAnswered = [];
+  document.getElementById('quiz-start-screen').style.display = 'none';
+  document.getElementById('quiz-results').style.display = 'none';
+  document.getElementById('quiz-progress-wrap').style.display = 'block';
+  document.getElementById('quiz-meta').style.display = 'flex';
+  document.getElementById('quiz-card').style.display = 'block';
+  showQuizQuestion();
+}
+
+function showQuizQuestion() {
+  if (quizIndex >= quizQuestions.length) { showQuizResults(); return; }
+  const q = quizQuestions[quizIndex];
+  const total = quizQuestions.length;
+  document.getElementById('quiz-progress-fill').style.width = ((quizIndex / total) * 100) + '%';
+  document.getElementById('quiz-q-counter').textContent = `Question ${quizIndex + 1} of ${total}`;
+  document.getElementById('quiz-score-live').textContent = `Score: ${quizScore}`;
+  const catLabels = { nigeria:'🇳🇬 Nigeria', africa:'🌍 Africa', economics:'💹 Economics', world:'🌐 World' };
+  document.getElementById('quiz-category-label').textContent = catLabels[q.cat] || q.cat;
+  document.getElementById('quiz-question').textContent = q.q;
+  document.getElementById('quiz-explanation').style.display = 'none';
+  document.getElementById('quiz-next-btn').style.display = 'none';
+  document.getElementById('quiz-options').innerHTML = q.opts.map((o, i) =>
+    `<button class="quiz-option" onclick="answerQuiz(${i})">${String.fromCharCode(65+i)}. ${o}</button>`
+  ).join('');
+}
+
+function answerQuiz(chosen) {
+  const q = quizQuestions[quizIndex];
+  const correct = q.ans;
+  const opts = document.querySelectorAll('.quiz-option');
+  opts.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === correct) btn.classList.add('correct');
+    else if (i === chosen) btn.classList.add('incorrect');
+  });
+  const isCorrect = chosen === correct;
+  if (isCorrect) quizScore++;
+  quizAnswered.push({ q: q.q, correct: isCorrect, correctAns: q.opts[correct] });
+  const expEl = document.getElementById('quiz-explanation');
+  expEl.style.display = 'block';
+  expEl.innerHTML = `<strong>${isCorrect ? '✅ Correct!' : '❌ Wrong — correct answer: ' + q.opts[correct]}</strong><br><span style="color:var(--muted-foreground)">${q.exp}</span>`;
+  document.getElementById('quiz-next-btn').style.display = 'block';
+  document.getElementById('quiz-next-btn').textContent = quizIndex + 1 < quizQuestions.length ? 'Next Question →' : 'See Results 🏆';
+}
+
+function quizNext() { quizIndex++; showQuizQuestion(); }
+
+function showQuizResults() {
+  document.getElementById('quiz-progress-fill').style.width = '100%';
+  document.getElementById('quiz-card').style.display = 'none';
+  document.getElementById('quiz-meta').style.display = 'none';
+  const results = document.getElementById('quiz-results');
+  results.style.display = 'block';
+  const total = quizQuestions.length;
+  const pct = Math.round((quizScore / total) * 100);
+  const emoji = pct >= 80 ? '🏆' : pct >= 60 ? '👏' : pct >= 40 ? '📚' : '💪';
+  const title = pct >= 80 ? 'Excellent!' : pct >= 60 ? 'Well Done!' : pct >= 40 ? 'Keep Learning!' : 'Keep Studying!';
+  document.getElementById('quiz-result-emoji').textContent = emoji;
+  document.getElementById('quiz-result-title').textContent = title;
+  document.getElementById('quiz-result-desc').textContent = `You scored ${quizScore} out of ${total} (${pct}%)`;
+  document.getElementById('quiz-result-breakdown').innerHTML = quizAnswered.map(a =>
+    `<div style="display:flex;align-items:flex-start;gap:8px;font-size:0.8rem;padding:6px 0;border-bottom:1px solid var(--border);">
+      <span>${a.correct ? '✅' : '❌'}</span>
+      <div><span style="color:var(--foreground);">${a.q}</span>${!a.correct ? `<br><span style="color:#16a34a;font-size:0.74rem;">✓ ${a.correctAns}</span>` : ''}</div>
+    </div>`
+  ).join('');
 }
 
 function renderGlossary() {

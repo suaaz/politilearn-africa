@@ -166,7 +166,7 @@
       </div>
       <span class="btn-label hide-mobile">MENU</span>
     </button>
-    <span class="font-bold text-[var(--foreground)] text-lg">🌍 PolitiLearn Africa</span>
+    <button onclick="navigate('home')" style="font-weight:800;font-size:1.1rem;color:var(--foreground);background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:8px;transition:color 0.2s;" onmouseover="this.style.color='#16a34a'" onmouseout="this.style.color='var(--foreground)'">🌍 PolitiLearn Africa</button>
     <div class="flex-1 hide-mobile">
       <input id="search-input" placeholder="Search topics, figures, concepts…" oninput="handleSearch(this.value)" />
     </div>
@@ -439,9 +439,20 @@
         </div>
       </div>
     </div>
+    <!-- Key Concepts for this topic -->
+    <div class="card mt-4">
+      <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">💡</span>
+          <h3 class="font-bold text-[var(--foreground)]">Key Concepts for Nigerian Politics</h3>
+        </div>
+        <button onclick="navigate('concepts')" style="background:#16a34a;color:white;border:none;border-radius:8px;padding:6px 14px;font-size:0.78rem;font-weight:700;cursor:pointer;">See All 50 Concepts →</button>
+      </div>
+      <div id="ng-politics-concepts-grid" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+    </div>
   </section>
 
-  <!-- =================== NIGERIA ECONOMY =================== -->
+
   <section id="sec-nigeria-economy" class="section">
     <div class="flex items-center gap-3 mb-6">
       <span class="text-3xl">💰</span>
@@ -1464,6 +1475,74 @@ function navigate(key) {
   if (key === 'glossary') renderGlossary();
   if (key === 'books') renderBooks();
   if (key === 'concepts') renderConcepts();
+  if (key === 'nigeria-politics') renderNigeriaPoliticsConcepts();
+}
+
+// Render relevant key concepts inline inside the Nigeria Politics section
+function renderNigeriaPoliticsConcepts() {
+  const grid = document.getElementById('ng-politics-concepts-grid');
+  if (!grid || grid.children.length > 0) return; // only render once
+
+  // The concept titles most relevant to Nigerian politics
+  const relevant = [
+    'Government','Elections','Constitution','Democracy (Full)',
+    'Rule of Law','Federalism','Corruption','Civil Society',
+    'Separation of Powers','Geopolitics','Populism','Human Rights'
+  ];
+
+  const levelColors = {
+    starter:'#16a34a', foundation:'#2563eb',
+    intermediate:'#ca8a04', advanced:'#ea580c', expert:'#dc2626'
+  };
+  const levelBg = {
+    starter:'#bbf7d0', foundation:'#bfdbfe',
+    intermediate:'#fef9c3', advanced:'#fed7aa', expert:'#fecaca'
+  };
+  const levelDark = {
+    starter:'#14532d', foundation:'#1e3a8a',
+    intermediate:'#713f12', advanced:'#7c2d12', expert:'#7f1d1d'
+  };
+
+  const items = relevant
+    .map(title => conceptsData.find(c => c.title === title))
+    .filter(Boolean);
+
+  grid.innerHTML = items.map((c, i) => {
+    const color  = levelColors[c.level];
+    const bg     = levelBg[c.level];
+    const dark   = levelDark[c.level];
+    const uid    = 'ngpc-' + i;
+    return `
+    <div style="border:1px solid var(--border);border-left:4px solid ${color};border-radius:10px;padding:1rem;background:var(--card);">
+      <div class="flex items-center gap-2 mb-2 flex-wrap">
+        <span style="font-size:1.3rem;">${c.emoji}</span>
+        <span style="font-weight:700;font-size:0.9rem;color:var(--foreground);">${c.title}</span>
+        <span style="font-size:0.65rem;font-weight:700;padding:2px 7px;border-radius:999px;background:${bg};color:${dark};">${c.level.charAt(0).toUpperCase()+c.level.slice(1)}</span>
+      </div>
+      <p style="font-size:0.78rem;color:var(--muted-foreground);margin-bottom:8px;">${c.short}</p>
+
+      <div class="eli5-block" style="font-size:0.75rem;padding:0.6rem 0.8rem;margin-bottom:8px;">
+        <span style="font-weight:700;">🧒 ELI5: </span>${c.eli5}
+      </div>
+
+      <div style="font-size:0.75rem;background:var(--accent);border-left:3px solid ${color};border-radius:6px;padding:0.6rem 0.8rem;margin-bottom:8px;">
+        <span style="font-weight:700;color:var(--foreground);">🇳🇬 Nigeria: </span>
+        <span style="color:var(--muted-foreground);">${c.nigeria}</span>
+      </div>
+
+      <button onclick="toggleConceptDeepDive('${uid}')"
+        style="display:flex;align-items:center;justify-content:space-between;width:100%;background:${color};color:white;border:none;border-radius:6px;padding:6px 12px;font-size:0.74rem;font-weight:700;cursor:pointer;">
+        <span>📖 Deep Dive</span><span id="${uid}-chevron">▼</span>
+      </button>
+      <div id="${uid}" style="max-height:0;overflow:hidden;transition:max-height 0.4s ease;">
+        <div style="font-size:0.75rem;padding:0.6rem 0.8rem;border:1px solid var(--border);border-radius:0 0 6px 6px;color:var(--muted-foreground);">
+          <p style="font-weight:700;color:var(--foreground);margin-bottom:4px;">🌍 Global Parallel</p>
+          <p style="margin-bottom:8px;">${c.world}</p>
+          ${c.deepdive}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // =================== SIDEBAR ===================
